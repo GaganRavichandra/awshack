@@ -57,16 +57,16 @@ export function RainfallControl({
       )}
 
       {/* Main Slider Section */}
-      <div style={{ background: '#090e18', border: '1px solid #16233b', padding: '12px 14px', borderRadius: '8px' }}>
+      <div style={{ background: '#121215', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '12px 14px', borderRadius: '8px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <CloudRain size={15} style={{ color: '#8ab4f8' }} />
+            <CloudRain size={15} style={{ color: '#a1a1aa' }} />
             <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em' }}>
               RAINFALL INTENSITY
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-            <span className="font-mono" style={{ fontSize: '20px', fontWeight: 800, color: '#8ab4f8' }}>
+            <span className="font-mono" style={{ fontSize: '20px', fontWeight: 800, color: '#fafafa' }}>
               {rainfallMm}
             </span>
             <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>mm/hr</span>
@@ -96,8 +96,8 @@ export function RainfallControl({
           marginTop: '10px',
           padding: '6px 10px',
           borderRadius: '6px',
-          background: rainfallMm === 0 ? 'rgba(52, 168, 83, 0.12)' : (rainfallMm <= 75 ? 'rgba(138, 180, 248, 0.1)' : 'rgba(234, 67, 53, 0.15)'),
-          border: `1px solid ${rainfallMm === 0 ? '#34a85350' : (rainfallMm <= 75 ? '#8ab4f840' : '#ea433550')}`,
+          background: rainfallMm === 0 ? 'rgba(52, 168, 83, 0.12)' : (rainfallMm <= 75 ? 'rgba(227, 175, 53, 0.1)' : 'rgba(234, 67, 53, 0.15)'),
+          border: `1px solid ${rainfallMm === 0 ? '#34a85350' : (rainfallMm <= 75 ? 'rgba(227, 175, 53, 0.25)' : '#ea433550')}`,
           fontSize: '11px',
           display: 'flex',
           justifyContent: 'space-between',
@@ -106,7 +106,7 @@ export function RainfallControl({
           <span style={{ color: '#9aa0a6', fontWeight: 600 }}>Drainage Condition:</span>
           <span style={{
             fontWeight: 700,
-            color: rainfallMm === 0 ? '#81c995' : (rainfallMm <= 75 ? '#8ab4f8' : '#f28b82')
+            color: rainfallMm === 0 ? '#81c995' : (rainfallMm <= 75 ? '#e3af35' : '#f28b82')
           }}>
             {rainfallMm === 0 ? 'Drainage flowing normally (No Inundation)' : (rainfallMm <= 75 ? 'Moderate Surface Runoff' : 'Extreme Surge / Depression Filling')}
           </span>
@@ -122,9 +122,9 @@ export function RainfallControl({
           title="Fetch live rainfall from Open-Meteo"
         >
           {isFetchingLive ? (
-            <RefreshCw size={14} className="animate-spin" style={{ color: '#8ab4f8' }} />
+            <RefreshCw size={14} className="animate-spin" style={{ color: '#a1a1aa' }} />
           ) : (
-            <Radio size={14} style={{ color: '#8ab4f8' }} />
+            <Radio size={14} style={{ color: '#a1a1aa' }} />
           )}
           <span>{isFetchingLive ? 'CONNECTING OPEN-METEO...' : 'SYNC LIVE BENGALURU WEATHER'}</span>
         </button>

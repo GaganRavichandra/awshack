@@ -6,9 +6,11 @@ export function LiveStatusPill({
   hotspots = [],
   onFlyToHotspot,
   onOpenSettings,
-  onOpenDevTools
+  onOpenDevTools,
+  isSimulateMode = false
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isHighlighted, setIsHighlighted] = useState(false);
 
   const maxRain = liveSummary?.max_rain_mm_hr ?? 0.0;
   const atRiskCount = liveSummary?.hotspots_at_risk ?? 0;
@@ -17,15 +19,23 @@ export function LiveStatusPill({
   const isDry = maxRain === 0 || atRiskCount === 0;
 
   return (
-    <div className="gmaps-top-status-container">
+    <div 
+      className={`gmaps-top-status-container hud-sim-dimmable ${isSimulateMode ? (isHighlighted ? 'hud-highlighted' : 'hud-dimmed') : ''}`}
+      onClick={() => {
+        if (isSimulateMode) {
+          setIsHighlighted(prev => !prev);
+        }
+      }}
+    >
       <div className="gmaps-top-telemetry-pill">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{
             width: '22px',
             height: '22px',
             borderRadius: '5px',
-            background: '#8ab4f8',
-            color: '#202124',
+            background: '#27272a',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            color: '#fafafa',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -65,7 +75,7 @@ export function LiveStatusPill({
             style={{
               background: 'none',
               border: 'none',
-              color: '#8ab4f8',
+              color: '#a1a1aa',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',

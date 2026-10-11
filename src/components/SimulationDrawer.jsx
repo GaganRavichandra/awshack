@@ -50,10 +50,24 @@ export function SimulationDrawer({
   is24SimPlaying = false,
   onToggle24SimPlay = null,
   onReset24Sim = null,
-  onStart24Simulation = null
+  onStart24Simulation = null,
+  // Live Forecast & Drainage Condition Assessment Integrations
+  environmentalData = null,
+  drainageAssessment = null,
+  onStartForecastSimulation = null,
+  isSimulateMode = false
 }) {
   const [isFetchingPointRain, setIsFetchingPointRain] = useState(false);
   const [livePointNotice, setLivePointNotice] = useState(null);
+  const [selectedMode, setSelectedMode] = useState(() => (sim24Sequence?.isForecastMode ? 'forecast' : 'scenario'));
+  const [isDrawerHighlighted, setIsDrawerHighlighted] = useState(false);
+
+  // Sync selectedMode when external sim24Sequence changes
+  React.useEffect(() => {
+    if (sim24Sequence?.isForecastMode) {
+      setSelectedMode('forecast');
+    }
+  }, [sim24Sequence?.isForecastMode]);
 
   if (!isOpen) return null;
 
@@ -93,7 +107,12 @@ export function SimulationDrawer({
 
   return (
     <div
-      className="gmaps-sim-drawer"
+      className={`gmaps-sim-drawer hud-sim-dimmable ${is24SimPlaying ? (isDrawerHighlighted ? 'hud-highlighted' : 'hud-dimmed') : ''}`}
+      onClick={() => {
+        if (is24SimPlaying) {
+          setIsDrawerHighlighted(prev => !prev);
+        }
+      }}
       style={{
         position: 'absolute',
         bottom: '24px',
@@ -102,31 +121,30 @@ export function SimulationDrawer({
         maxWidth: 'calc(100vw - 32px)',
         zIndex: 50,
         pointerEvents: 'auto',
-        background: 'rgba(28, 28, 30, 0.94)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderRadius: '18px',
-        border: '1px solid #3A3A3C',
-        boxShadow: '0 16px 40px rgba(0, 0, 0, 0.65)',
+        background: '#121215',
+        backdropFilter: 'blur(16px)',
+        borderRadius: '16px',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.85)',
         overflow: 'hidden'
       }}
     >
       {/* Drawer Header */}
       <div className="gmaps-drawer-header" style={{
         padding: '12px 16px',
-        borderBottom: '1px solid #3A3A3C',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        background: 'rgba(44, 44, 46, 0.92)'
+        background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.04), transparent)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0A84FF', boxShadow: '0 0 8px #0A84FF' }} />
+          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#a1a1aa', boxShadow: '0 0 6px rgba(161, 161, 170, 0.5)' }} />
           <div>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF', letterSpacing: '0.02em' }}>
+            <div style={{ fontSize: '13px', fontWeight: 800, color: '#e8eaed', letterSpacing: '0.02em' }}>
               1 km² Simulation Block
             </div>
-            <div style={{ fontSize: '10.5px', color: 'rgba(235, 235, 245, 0.60)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '240px' }}>
+            <div style={{ fontSize: '10.5px', color: '#a1a1aa', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '240px' }}>
               {blockLabel || 'Extracted Zone'}
             </div>
           </div>
@@ -141,57 +159,213 @@ export function SimulationDrawer({
         
         {/* Real-time Inundation Telemetry Result Card */}
         <div style={{
-          padding: '12px 14px',
-          borderRadius: '14px',
-          background: '#2C2C2E',
-          border: '1px solid #3A3A3C',
+          padding: '10px 12px',
+          borderRadius: '10px',
+          background: 'rgba(24, 28, 38, 0.9)',
+          border: `1px solid ${tierColor}40`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
           <div>
-            <div style={{ fontSize: '10px', color: 'rgba(235, 235, 245, 0.60)', textTransform: 'uppercase', fontWeight: 600 }}>
+            <div style={{ fontSize: '10px', color: '#9aa0a6', textTransform: 'uppercase', fontWeight: 600 }}>
               {is24SimActive ? `Hour ${currentSimHour}:00 Depth` : 'Peak Inundation'}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px', marginTop: '1px' }}>
               <span style={{ fontSize: '22px', fontWeight: 800, color: tierColor }}>
                 {peakDepthM > 0 ? `${peakDepthM} m` : '0.0 m'}
               </span>
-              <span style={{ fontSize: '11px', color: 'rgba(235, 235, 245, 0.60)' }}>
+              <span style={{ fontSize: '11px', color: '#9aa0a6' }}>
                 {tierLabel}
               </span>
             </div>
             {elevationStats && (
-              <div style={{ fontSize: '9.5px', color: 'rgba(235, 235, 245, 0.60)', marginTop: '2px' }}>
+              <div style={{ fontSize: '9.5px', color: '#a1a1aa', marginTop: '2px' }}>
                 Base Elevation: {elevationStats.minElevation.toFixed(1)}m • Surface: {elevationStats.waterSurfaceElevation.toFixed(1)}m
               </div>
             )}
           </div>
 
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '10px', color: 'rgba(235, 235, 245, 0.60)', textTransform: 'uppercase', fontWeight: 600 }}>
+            <div style={{ fontSize: '10px', color: '#9aa0a6', textTransform: 'uppercase', fontWeight: 600 }}>
               Flooded Area
             </div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginTop: '2px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#e8eaed', marginTop: '2px' }}>
               {Math.round(floodFraction * 100)}% ({simulationResult?.flooded_sqkm ?? (floodFraction * 1.0).toFixed(2)} km²)
             </div>
           </div>
         </div>
 
         {/* =========================================================================
-            3. "SIMULATE DEMO" & 24-HOUR TIME-STEPPED GRID SIMULATION CONTROLLER
+            3. SIMULATION CONTROLLER (SCENARIO vs LIVE FORECAST MODE)
             ========================================================================= */}
-        <div className="sim24-timeline-box">
+        <div className="sim24-timeline-box" style={{ border: selectedMode === 'forecast' ? '1px solid rgba(16, 185, 129, 0.3)' : undefined }}>
+          {/* Mode Selector Tabs */}
+          <div style={{
+            display: 'flex',
+            background: 'rgba(0, 0, 0, 0.45)',
+            borderRadius: '8px',
+            padding: '3px',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            marginBottom: '8px'
+          }}>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedMode('scenario');
+                if (sim24Sequence?.isForecastMode && onStart24Simulation) {
+                  onStart24Simulation();
+                }
+              }}
+              style={{
+                flex: 1,
+                padding: '5px 8px',
+                borderRadius: '6px',
+                border: 'none',
+                background: selectedMode === 'scenario' ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                color: selectedMode === 'scenario' ? '#ffffff' : '#94a3b8',
+                fontWeight: 700,
+                fontSize: '10.5px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '5px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Sliders size={12} />
+              <span>SCENARIO</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedMode('forecast');
+                if (!sim24Sequence?.isForecastMode && onStartForecastSimulation) {
+                  onStartForecastSimulation();
+                }
+              }}
+              style={{
+                flex: 1,
+                padding: '5px 8px',
+                borderRadius: '6px',
+                border: 'none',
+                background: selectedMode === 'forecast' ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
+                color: selectedMode === 'forecast' ? '#34d399' : '#94a3b8',
+                fontWeight: 700,
+                fontSize: '10.5px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '5px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <CloudRain size={12} />
+              <span>LIVE FORECAST</span>
+            </button>
+          </div>
+
+          {/* Forecast & Drainage Condition Insights in Forecast Mode */}
+          {selectedMode === 'forecast' && (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              padding: '8px 10px',
+              borderRadius: '8px',
+              background: 'rgba(16, 185, 129, 0.06)',
+              border: '1px solid rgba(16, 185, 129, 0.2)',
+              marginBottom: '8px',
+              fontSize: '10.5px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#94a3b8' }}>Forecast Source:</span>
+                <strong style={{ color: '#34d399' }}>
+                  {environmentalData?.primaryProvider || 'Open-Meteo API'} (24h)
+                </strong>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                <div>
+                  <span style={{ color: '#94a3b8', fontSize: '9.5px' }}>24h Total Rain:</span>
+                  <div style={{ color: '#f1f5f9', fontWeight: 700 }}>
+                    {environmentalData?.forecast?.next_24h_accumulation_mm ?? 0} mm
+                  </div>
+                </div>
+                <div>
+                  <span style={{ color: '#94a3b8', fontSize: '9.5px' }}>Rain Probability:</span>
+                  <div style={{ color: '#fafafa', fontWeight: 700 }}>
+                    {environmentalData?.forecast?.precipitation_probability_pct ?? 0}%
+                  </div>
+                </div>
+              </div>
+              {drainageAssessment && (
+                <div style={{
+                  borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                  paddingTop: '5px',
+                  marginTop: '2px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <div>
+                    <span style={{ color: '#94a3b8', fontSize: '9.5px' }}>Drainage Assessment:</span>
+                    <div style={{ color: '#e2e8f0', fontSize: '10px', fontWeight: 600 }}>
+                      {drainageAssessment.primaryIssue || 'Monitored Network'}
+                    </div>
+                  </div>
+                  <div style={{
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    background: drainageAssessment.cloggingPercentage > 50 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                    color: drainageAssessment.cloggingPercentage > 50 ? '#f87171' : '#fbbf24',
+                    fontWeight: 700,
+                    fontSize: '10px'
+                  }}>
+                    {drainageAssessment.cloggingPercentage}% Clogged
+                  </div>
+                </div>
+              )}
+              {(!sim24Sequence || !sim24Sequence.isForecastMode) && onStartForecastSimulation && (
+                <button
+                  type="button"
+                  onClick={onStartForecastSimulation}
+                  style={{
+                    marginTop: '4px',
+                    padding: '6px 10px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: '#10b981',
+                    color: '#05080c',
+                    fontWeight: 800,
+                    fontSize: '10.5px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '5px'
+                  }}
+                >
+                  <CloudRain size={12} fill="#05080c" />
+                  <span>Compute Forecast-Driven Simulation</span>
+                </button>
+              )}
+            </div>
+          )}
+
           <div className="sim24-header-row">
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Calendar size={13} style={{ color: '#00f0ff' }} />
+              <Calendar size={13} style={{ color: selectedMode === 'forecast' ? '#10b981' : '#a1a1aa' }} />
               <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#e2e8f0' }}>
-                24-Hour Timeline Simulation
+                {selectedMode === 'forecast' ? 'Live Forecast Timeline' : '24-Hour Timeline Simulation'}
               </span>
             </div>
 
-            <div className="sim24-hour-badge">
-              Hour {String(currentSimHour).padStart(2, '0')}:00 / 24:00
+            <div className="sim24-hour-badge" style={{ color: selectedMode === 'forecast' ? '#34d399' : '#fafafa' }}>
+              {selectedMode === 'forecast'
+                ? (active24Step?.displayTime || active24Step?.label || `T+${currentSimHour}h`)
+                : `Hour ${String(currentSimHour).padStart(2, '0')}:00 / 24:00`}
             </div>
           </div>
 
@@ -202,7 +376,12 @@ export function SimulationDrawer({
                 type="button"
                 onClick={onToggle24SimPlay}
                 className="sim24-play-btn"
-                title={is24SimPlaying ? "Pause 24h Playback" : "Play 24-Hour Sequence"}
+                style={{
+                  background: is24SimPlaying ? '#c2820a' : (selectedMode === 'forecast' ? '#10b981' : '#e3af35'),
+                  color: '#09090b',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)'
+                }}
+                title={is24SimPlaying ? "Pause Timeline Playback" : "Play Timeline Sequence"}
               >
                 {is24SimPlaying ? <Pause size={12} fill="#05080c" /> : <Play size={12} fill="#05080c" />}
                 <span>{is24SimPlaying ? 'PAUSE' : 'PLAY'}</span>
@@ -212,33 +391,33 @@ export function SimulationDrawer({
                 type="button"
                 onClick={onReset24Sim}
                 className="sim24-btn"
-                title="Reset simulation to Hour 0 (0h baseline)"
+                title="Reset simulation to initial step"
               >
                 <RotateCcw size={12} />
-                <span>Reset (0h)</span>
+                <span>Reset</span>
               </button>
             </div>
           </div>
 
-          {/* Scrubbable 0h to 24h Slider */}
+          {/* Scrubbable Timeline Slider */}
           <div>
             <input
               type="range"
               min="0"
-              max="24"
+              max={sim24Sequence?.totalHours ?? 24}
               step="1"
               value={currentSimHour}
               onChange={(e) => {
                 if (onSimHourChange) onSimHourChange(Number(e.target.value));
               }}
               className="sim24-slider"
+              style={{ accentColor: selectedMode === 'forecast' ? '#10b981' : '#e3af35' }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#94a3b8', marginTop: '2px' }}>
-              <span>0h (Dry)</span>
-              <span>6h (Squall)</span>
-              <span>8h (Peak)</span>
-              <span>16h (Recede)</span>
-              <span>24h (Clear)</span>
+              <span>{selectedMode === 'forecast' ? 'Now' : '0h (Dry)'}</span>
+              <span>{selectedMode === 'forecast' ? 'Peak Prob' : '8h (Peak)'}</span>
+              <span>{selectedMode === 'forecast' ? `${Math.round((sim24Sequence?.totalHours ?? 24) / 2)}h` : '16h (Recede)'}</span>
+              <span>{sim24Sequence?.totalHours ?? 24}h</span>
             </div>
           </div>
 
@@ -255,7 +434,7 @@ export function SimulationDrawer({
             }}>
               <div>
                 <span style={{ color: '#94a3b8' }}>Rainfall:</span>{' '}
-                <strong style={{ color: '#38bdf8' }}>{active24Step.rainfallMm} mm/h</strong>
+                <strong style={{ color: '#fafafa' }}>{active24Step.rainfallMm} mm/h</strong>
               </div>
               <div>
                 <span style={{ color: '#94a3b8' }}>Runoff Bal:</span>{' '}
@@ -288,7 +467,7 @@ export function SimulationDrawer({
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 700, color: '#e2e8f0' }}>
-              <Sliders size={13} style={{ color: '#f59e0b' }} />
+              <Sliders size={13} style={{ color: '#a1a1aa' }} />
               <span>Simulation Parameters</span>
             </div>
             <span style={{ fontSize: '10px', color: '#94a3b8' }}>Configured via Quick Actions</span>
@@ -298,12 +477,12 @@ export function SimulationDrawer({
             <div style={{
               padding: '7px 9px',
               borderRadius: '7px',
-              background: 'rgba(56, 189, 248, 0.08)',
-              border: '1px solid rgba(56, 189, 248, 0.2)'
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(255, 255, 255, 0.08)'
             }}>
               <div style={{ fontSize: '9.5px', color: '#94a3b8' }}>Peak Rain Intensity</div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8', marginTop: '2px' }}>
-                {rainfallMm} <span style={{ fontSize: '10px', fontWeight: 500 }}>mm/hr</span>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#fafafa', marginTop: '2px' }}>
+                {rainfallMm} <span style={{ fontSize: '10px', fontWeight: 500, color: '#a1a1aa' }}>mm/hr</span>
               </div>
             </div>
 
@@ -326,34 +505,42 @@ export function SimulationDrawer({
             Dynamic per selected block (cell-specific rooftop area & standard hydrology)
             ========================================================================= */}
         {rwhStats && (
-          <div className="rwh-breakdown-card">
+          <div className="rwh-breakdown-card" style={rwhStats.isPaused ? { border: '1px solid rgba(239, 68, 68, 0.35)' } : undefined}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Droplets size={14} style={{ color: '#00f0ff' }} />
+                <Droplets size={14} style={{ color: rwhStats.isPaused ? '#f87171' : '#a1a1aa' }} />
                 <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#f1f5f9' }}>
                   Block Rainwater Harvesting (RWH)
                 </span>
+                {rwhStats.isPaused && (
+                  <span style={{ fontSize: '9px', fontWeight: 700, color: '#f87171', background: 'rgba(239, 68, 68, 0.15)', padding: '1px 5px', borderRadius: '3px' }}>
+                    &gt;50mm Paused
+                  </span>
+                )}
               </div>
 
               {onOpenRWH && (
                 <button
                   type="button"
-                  onClick={onOpenRWH}
+                  onClick={rwhStats.isPaused ? undefined : onOpenRWH}
+                  disabled={rwhStats.isPaused}
+                  title={rwhStats.isPaused ? "RWH Inflow Paused: Precipitation exceeds 50mm. Stormwater bypass active." : "Open full interactive RWH catchment calculator"}
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: '#00f0ff',
+                    color: rwhStats.isPaused ? '#64748b' : '#fafafa',
                     fontSize: '10.5px',
                     fontWeight: 700,
-                    cursor: 'pointer',
+                    cursor: rwhStats.isPaused ? 'not-allowed' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '2px',
-                    padding: 0
+                    padding: 0,
+                    opacity: rwhStats.isPaused ? 0.6 : 1
                   }}
                 >
-                  <span>Full RWH Engine</span>
-                  <ChevronRight size={12} />
+                  <span>{rwhStats.isPaused ? '>50mm Paused' : 'Full RWH Engine'}</span>
+                  {!rwhStats.isPaused && <ChevronRight size={12} />}
                 </button>
               )}
             </div>
@@ -361,7 +548,7 @@ export function SimulationDrawer({
             <div className="rwh-stat-grid">
               <div className="rwh-stat-box">
                 <div style={{ fontSize: '9px', color: '#94a3b8', textTransform: 'uppercase' }}>Terrace Coverage</div>
-                <div style={{ fontSize: '13px', fontWeight: 800, color: '#00f0ff', marginTop: '1px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: '#fafafa', marginTop: '1px' }}>
                   {rwhStats.terraceAreaM2?.toLocaleString()} m²
                 </div>
                 <div style={{ fontSize: '9px', color: '#94a3b8' }}>
@@ -371,11 +558,11 @@ export function SimulationDrawer({
 
               <div className="rwh-stat-box">
                 <div style={{ fontSize: '9px', color: '#94a3b8', textTransform: 'uppercase' }}>Collectable Water</div>
-                <div style={{ fontSize: '13px', fontWeight: 800, color: '#10b981', marginTop: '1px' }}>
-                  {rwhStats.harvestableKL?.toLocaleString()} kL
+                <div style={{ fontSize: '13px', fontWeight: 800, color: rwhStats.isPaused ? '#f87171' : '#10b981', marginTop: '1px' }}>
+                  {rwhStats.isPaused ? 'Paused (>50mm)' : `${(rwhStats.harvestableKL ?? 0).toLocaleString()} kL`}
                 </div>
                 <div style={{ fontSize: '9px', color: '#94a3b8' }}>
-                  {rwhStats.harvestableLiters?.toLocaleString()} Liters
+                  {rwhStats.isPaused ? 'Stormwater bypass active' : `${(rwhStats.harvestableLiters ?? 0).toLocaleString()} Liters`}
                 </div>
               </div>
             </div>
@@ -383,8 +570,8 @@ export function SimulationDrawer({
             <div style={{
               padding: '6px 8px',
               borderRadius: '6px',
-              background: 'rgba(16, 185, 129, 0.08)',
-              border: '1px solid rgba(16, 185, 129, 0.2)',
+              background: rwhStats.isPaused ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+              border: rwhStats.isPaused ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid rgba(16, 185, 129, 0.2)',
               fontSize: '10.5px',
               color: '#cbd5e1',
               display: 'flex',
@@ -392,8 +579,8 @@ export function SimulationDrawer({
               justifyContent: 'space-between'
             }}>
               <span>Non-Potable Supply Potential:</span>
-              <strong style={{ color: '#10b981' }}>
-                ~{rwhStats.daysNonPotableSupply} Days
+              <strong style={{ color: rwhStats.isPaused ? '#f87171' : '#10b981' }}>
+                {rwhStats.isPaused ? 'Paused (>50mm)' : `~${rwhStats.daysNonPotableSupply ?? 0} Days`}
               </strong>
             </div>
           </div>

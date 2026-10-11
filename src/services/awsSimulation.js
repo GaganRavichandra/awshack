@@ -36,7 +36,7 @@ export async function runAwsBlockSimulation({
     terrain_samples: terrainSamples
   };
 
-  console.log("%c[4clique AWS Block Request]", "color: #00f0ff; font-weight: bold;", {
+  console.log("%c[4clique AWS Block Request]", "color: #e3af35; font-weight: bold;", {
     endpoint: targetUrl,
     method: "POST",
     payload

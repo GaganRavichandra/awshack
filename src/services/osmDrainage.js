@@ -40,10 +40,11 @@ function generateBlockDrainageFallback(bounds) {
       id: 'osm_fallback_primary_drain',
       properties: {
         id: 'osm_fallback_primary_drain',
-        name: 'Stormwater Primary Corridor (Rajakaluve)',
+        name: 'Estimated Primary Drainage Corridor',
         drainType: 'drain',
-        source: 'BBMP / OpenStreetMap SWD Alignment',
-        verified: true,
+        source: 'Estimated Flow Path (Synthetic Fallback)',
+        verified: false,
+        isFallback: true,
         widthMeters: 3.5
       },
       geometry: { type: 'LineString', coordinates: rajakaluveCoords }
@@ -53,10 +54,11 @@ function generateBlockDrainageFallback(bounds) {
       id: 'osm_fallback_feeder_1',
       properties: {
         id: 'osm_fallback_feeder_1',
-        name: 'Secondary Feeder Drain',
+        name: 'Estimated Secondary Feeder Drain',
         drainType: 'ditch',
-        source: 'OpenStreetMap SWD Alignment',
-        verified: true,
+        source: 'Estimated Flow Path (Synthetic Fallback)',
+        verified: false,
+        isFallback: true,
         widthMeters: 1.5
       },
       geometry: { type: 'LineString', coordinates: feederCoords1 }
@@ -66,10 +68,11 @@ function generateBlockDrainageFallback(bounds) {
       id: 'osm_fallback_feeder_2',
       properties: {
         id: 'osm_fallback_feeder_2',
-        name: 'Culvert Outflow Channel',
+        name: 'Estimated Culvert Outflow',
         drainType: 'drain',
-        source: 'OpenStreetMap SWD Alignment',
-        verified: true,
+        source: 'Estimated Flow Path (Synthetic Fallback)',
+        verified: false,
+        isFallback: true,
         widthMeters: 1.8
       },
       geometry: { type: 'LineString', coordinates: feederCoords2 }
@@ -79,10 +82,11 @@ function generateBlockDrainageFallback(bounds) {
       id: 'osm_fallback_manhole_1',
       properties: {
         id: 'osm_fallback_manhole_1',
-        name: 'Stormwater Inspection Chamber',
+        name: 'Estimated Drainage Inspection Point',
         featureType: 'manhole',
-        source: 'OpenStreetMap SWD Alignment',
-        verified: true
+        source: 'Estimated Flow Path (Synthetic Fallback)',
+        verified: false,
+        isFallback: true
       },
       geometry: { type: 'Point', coordinates: [midLng, midLat] }
     }
@@ -145,18 +149,20 @@ export async function fetchOsmDrainageFeatures(bounds, forceRefresh = false) {
       const osmData = await res.json();
       const geojsonFeatures = convertOsmJsonToGeoJSON(osmData);
 
-      const featuresToUse = geojsonFeatures.length > 0
+      const isRealOsm = geojsonFeatures.length > 0;
+      const featuresToUse = isRealOsm
         ? geojsonFeatures
         : generateBlockDrainageFallback(bounds);
 
       const result = {
         type: 'FeatureCollection',
         features: featuresToUse,
+        sourceStatus: isRealOsm ? 'LIVE' : 'ESTIMATED',
         metadata: {
           totalCount: featuresToUse.length,
           verifiedOsmCount: geojsonFeatures.length,
-          isFallback: geojsonFeatures.length === 0,
-          provider: 'OpenStreetMap Overpass API',
+          isFallback: !isRealOsm,
+          provider: isRealOsm ? 'OpenStreetMap Overpass API' : 'Estimated Natural Drainage Alignment (Synthetic Fallback)',
           timestamp: new Date().toISOString()
         }
       };
@@ -168,16 +174,17 @@ export async function fetchOsmDrainageFeatures(bounds, forceRefresh = false) {
     }
   }
 
-  // Graceful fallback to verified natural flow alignment
+  // Graceful fallback to synthetic flow alignment
   const fallbackFeatures = generateBlockDrainageFallback(bounds);
   const fallbackResult = {
     type: 'FeatureCollection',
     features: fallbackFeatures,
+    sourceStatus: 'ESTIMATED',
     metadata: {
       totalCount: fallbackFeatures.length,
       verifiedOsmCount: 0,
       isFallback: true,
-      provider: 'BBMP Stormwater Master Alignment (Synthetic Baseline)',
+      provider: 'Estimated Natural Drainage Alignment (Synthetic Fallback)',
       timestamp: new Date().toISOString()
     }
   };
@@ -250,4 +257,108 @@ function convertOsmJsonToGeoJSON(osmData) {
   }
 
   return features;
+}
+
+/**
+ * Evaluates drainage condition & clogging risk for the selected block
+ * using the real API drainage features and any official monitored drains / reports in the area.
+ *
+ * @param {Object} osmDrainageData - Returned GeoJSON FeatureCollection from fetchOsmDrainageFeatures
+ * @param {Object} blockBounds - { minLng, minLat, maxLng, maxLat }
+ * @param {Array} drainageAlerts - State-wide monitored drains with citizen/municipal overrides
+ * @returns {Object} { assessedCloggingPercent, assessmentStatus, isEstimate, drainCount, culvertCount, monitoredDrain, explanation }
+ */
+export function assessDrainageCondition(osmDrainageData, blockBounds, drainageAlerts = []) {
+  if (!blockBounds) {
+    return {
+      assessedCloggingPercent: 70,
+      assessmentStatus: 'MANUAL',
+      isEstimate: true,
+      drainCount: 0,
+      culvertCount: 0,
+      monitoredDrain: null,
+      explanation: 'No block selected. Manual scenario setting active.'
+    };
+  }
+
+  const { minLng, minLat, maxLng, maxLat } = blockBounds;
+
+  // 1. Check if any monitored Karnataka/Bengaluru rajakaluves / outfalls intersect this block
+  let matchedMonitoredDrain = null;
+  if (Array.isArray(drainageAlerts) && drainageAlerts.length > 0) {
+    matchedMonitoredDrain = drainageAlerts.find(d => {
+      if (!Array.isArray(d.coordinates)) return false;
+      const [lng, lat] = d.coordinates;
+      return lng >= minLng && lng <= maxLng && lat >= minLat && lat <= maxLat;
+    });
+  }
+
+  // 2. Inspect real OSM drainage features in block
+  const features = osmDrainageData?.features || [];
+  const isFallback = osmDrainageData?.metadata?.isFallback ?? (features.length === 0);
+  const realOsmFeatures = isFallback ? [] : features;
+
+  const lines = realOsmFeatures.filter(f => f.geometry?.type === 'LineString');
+  const manholes = realOsmFeatures.filter(f => f.geometry?.type === 'Point');
+  const culverts = lines.filter(f => f.properties?.drainType === 'culvert' || f.properties?.covered);
+
+  // If a monitored drain with known deficit / municipal status is inside this block:
+  if (matchedMonitoredDrain) {
+    let baseClog = 55;
+    if (matchedMonitoredDrain.currentStatus === 'Severe' || matchedMonitoredDrain.defaultStatus === 'Severe') {
+      baseClog = Math.max(75, matchedMonitoredDrain.deficitPercent ? Math.min(85, matchedMonitoredDrain.deficitPercent * 2) : 75);
+    } else if (matchedMonitoredDrain.currentStatus === 'Moderate' || matchedMonitoredDrain.defaultStatus === 'Moderate') {
+      baseClog = 55;
+    } else if (matchedMonitoredDrain.currentStatus === 'Critical') {
+      baseClog = 85;
+    } else if (matchedMonitoredDrain.currentStatus === 'Normal') {
+      baseClog = 30;
+    }
+
+    if (culverts.length > 0) baseClog = Math.min(90, baseClog + 5);
+
+    return {
+      assessedCloggingPercent: Math.round(baseClog),
+      assessmentStatus: 'OBSERVED_DEFICIT',
+      isEstimate: false,
+      drainCount: lines.length,
+      culvertCount: culverts.length,
+      manholeCount: manholes.length,
+      monitoredDrain: matchedMonitoredDrain,
+      isFallback: false,
+      explanation: `${matchedMonitoredDrain.shortName || matchedMonitoredDrain.name}: ${matchedMonitoredDrain.currentStatus} (${matchedMonitoredDrain.deficitPercent ? matchedMonitoredDrain.deficitPercent + '% deficit' : matchedMonitoredDrain.criticality || 'Monitored Outfall'})`
+    };
+  }
+
+  // If genuine OSM features are found (geometry without sensor telemetry)
+  if (!isFallback && lines.length > 0) {
+    let estimatedClog = 50;
+    if (culverts.length > 0) estimatedClog += 10;
+    if (lines.length <= 2) estimatedClog += 10;
+
+    return {
+      assessedCloggingPercent: Math.min(85, Math.max(25, estimatedClog)),
+      assessmentStatus: 'ESTIMATED_GEOMETRY',
+      isEstimate: true,
+      drainCount: lines.length,
+      culvertCount: culverts.length,
+      manholeCount: manholes.length,
+      monitoredDrain: null,
+      isFallback: false,
+      explanation: `${lines.length} mapped OSM stormwater conduits (${culverts.length} culverts, ${manholes.length} chambers). No sensor telemetry; clogging estimated from conduit morphology.`
+    };
+  }
+
+  // If no OSM features or fallback used
+  return {
+    assessedCloggingPercent: 70,
+    assessmentStatus: isFallback ? 'ESTIMATED_SYNTHETIC' : 'UNAVAILABLE',
+    isEstimate: true,
+    drainCount: features.length,
+    culvertCount: 0,
+    manholeCount: 0,
+    monitoredDrain: null,
+    isFallback: true,
+    explanation: 'No direct drainage sensors in this block. Using baseline hydraulic estimation.'
+  };
 }

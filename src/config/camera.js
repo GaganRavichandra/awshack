@@ -4,6 +4,10 @@
 export const BENGALURU_CENTER = [77.5946, 12.9716]; // [Longitude, Latitude]
 export const KARNATAKA_CENTER = [75.7139, 15.3173];
 
+export const MAPBOX_VERIFIED_TOKEN = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_MAPBOX_TOKEN)
+  ? import.meta.env.VITE_MAPBOX_TOKEN
+  : (typeof window !== 'undefined' && window.localStorage ? window.localStorage.getItem('4clique_mapbox_token') || '' : '');
+
 export const TARGET_CAMERA = {
   center: BENGALURU_CENTER,
   latitude: 12.9716,

@@ -163,14 +163,14 @@ export function DemoPresetModal({
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, color: '#f1f5f9' }}>
-                <CloudRain size={15} style={{ color: '#38bdf8' }} />
+                <CloudRain size={15} style={{ color: '#a1a1aa' }} />
                 <span>Rainfall Intensity (mm/hr)</span>
               </div>
               <span style={{
                 fontSize: '13px',
                 fontWeight: 800,
-                color: '#38bdf8',
-                background: 'rgba(56, 189, 248, 0.1)',
+                color: '#fafafa',
+                background: 'rgba(255, 255, 255, 0.08)',
                 padding: '2px 8px',
                 borderRadius: '6px'
               }}>
@@ -187,7 +187,7 @@ export function DemoPresetModal({
                 setRainfall(Number(e.target.value));
                 setScenarioName('Custom Settings');
               }}
-              style={{ width: '100%', accentColor: '#38bdf8', cursor: 'pointer' }}
+              style={{ width: '100%', accentColor: '#a1a1aa', cursor: 'pointer' }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#64748b', marginTop: '4px' }}>
               <span>0 mm (Dry)</span>
@@ -251,7 +251,7 @@ export function DemoPresetModal({
           }}>
             <div>
               <div style={{ fontSize: '9.5px', color: '#94a3b8', textTransform: 'uppercase' }}>Inflow Q_in</div>
-              <div style={{ fontSize: '15px', fontWeight: 800, color: '#38bdf8', marginTop: '2px' }}>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: '#fafafa', marginTop: '2px' }}>
                 {qIn} mm/h
               </div>
             </div>
@@ -283,9 +283,9 @@ export function DemoPresetModal({
             style={{
               padding: '12px',
               borderRadius: '8px',
-              background: 'linear-gradient(135deg, #ffac33 0%, #ea580c 100%)',
+              background: '#e3af35',
               border: 'none',
-              color: '#05080c',
+              color: '#09090b',
               fontWeight: 800,
               fontSize: '13px',
               cursor: 'pointer',
@@ -293,10 +293,10 @@ export function DemoPresetModal({
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              boxShadow: '0 4px 15px rgba(255, 172, 51, 0.35)'
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)'
             }}
           >
-            <Play size={16} fill="#05080c" />
+            <Play size={16} fill="#09090b" color="#09090b" />
             <span>APPLY & INITIALIZE 24-HOUR SIMULATION</span>
           </button>
         </div>

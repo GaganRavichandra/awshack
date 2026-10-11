@@ -15,11 +15,12 @@ export function Header({
         {/* Title & Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{
-            background: 'rgba(0, 240, 255, 0.12)',
-            border: '1px solid #00f0ff',
-            color: '#00f0ff',
+            background: '#27272a',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            color: '#fafafa',
             width: '32px',
             height: '32px',
+            borderRadius: '6px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -40,9 +41,10 @@ export function Header({
                 Urban Water Digital Twin
               </span>
               <span style={{
-                background: '#0e1c2e',
-                border: '1px solid #1e3a5f',
-                color: '#38bdf8',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#a1a1aa',
+                borderRadius: '4px',
                 fontSize: '10px',
                 padding: '2px 6px',
                 fontWeight: 700,
@@ -97,7 +99,7 @@ export function Header({
             gap: '6px'
           }}>
             <span style={{ color: '#64748b', fontSize: '10px', fontWeight: 700 }}>RAIN:</span>
-            <span className="font-mono" style={{ color: '#00f0ff', fontWeight: 700 }}>{rainfallMm} mm</span>
+            <span className="font-mono" style={{ color: '#fafafa', fontWeight: 700 }}>{rainfallMm} mm</span>
           </div>
 
           {/* DevTools Judging Guide Trigger */}

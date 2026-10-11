@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, MapPin, Navigation, X, Loader2, ArrowRight, Layers, Compass } from 'lucide-react';
 
+import { cleanToEnglish, findNearestEnglishLocality } from '../services/locationiq';
+
 const LOCATIONIQ_API_KEY = 'pk.b331338dcd3fee9865865d43152f9ed9';
 
 // Bounding box for Greater Bengaluru & Tech Corridors
@@ -144,20 +146,32 @@ export function SearchBar({
         const { latitude, longitude } = position.coords;
 
         try {
-          const revUrl = `https://us1.locationiq.com/v1/reverse?key=${LOCATIONIQ_API_KEY}&lat=${latitude}&lon=${longitude}&format=json`;
-          const res = await fetch(revUrl);
+          const revUrl = `https://us1.locationiq.com/v1/reverse?key=${LOCATIONIQ_API_KEY}&lat=${latitude}&lon=${longitude}&format=json&accept-language=en&addressdetails=1`;
+          const res = await fetch(revUrl, { headers: { 'Accept-Language': 'en' } });
           if (res.ok) {
             const revData = await res.json();
-            const locationName = revData.display_name?.split(',').slice(0, 2).join(',') || 'Current Location';
+            const addr = revData.address || {};
+            const cleanLoc = cleanToEnglish(
+              addr.suburb ||
+              addr.neighbourhood ||
+              addr.residential ||
+              addr.quarter ||
+              addr.city_district ||
+              revData.display_name?.split(',')[0] ||
+              findNearestEnglishLocality(latitude, longitude)
+            );
+            const locationName = cleanLoc || 'Current Location';
             setQuery(locationName);
             onSelectLocation([longitude, latitude], locationName);
           } else {
-            setQuery(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-            onSelectLocation([longitude, latitude], 'Current Location');
+            const fallbackLoc = findNearestEnglishLocality(latitude, longitude);
+            setQuery(fallbackLoc);
+            onSelectLocation([longitude, latitude], fallbackLoc);
           }
         } catch {
-          setQuery(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-          onSelectLocation([longitude, latitude], 'Current Location');
+          const fallbackLoc = findNearestEnglishLocality(latitude, longitude);
+          setQuery(fallbackLoc);
+          onSelectLocation([longitude, latitude], fallbackLoc);
         } finally {
           setIsLocating(false);
           setIsOpen(false);
@@ -190,7 +204,7 @@ export function SearchBar({
         className="gmaps-collapsed-pill"
         title="Search places across Bengaluru (Click to expand)"
       >
-        <Search size={18} style={{ color: '#8ab4f8' }} />
+        <Search size={18} style={{ color: '#a1a1aa' }} />
         <span style={{ fontSize: '13px', color: '#e8eaed', fontWeight: 500 }}>
           {query ? query : 'Search Bengaluru...'}
         </span>
@@ -202,7 +216,7 @@ export function SearchBar({
     <div ref={containerRef} className="gmaps-search-card">
       {/* Primary Google Maps Input Bar */}
       <div className="gmaps-search-input-wrapper">
-        <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '14px', color: '#8ab4f8' }}>
+        <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '14px', color: '#a1a1aa' }}>
           <Search size={19} />
         </div>
 
@@ -230,7 +244,7 @@ export function SearchBar({
         {/* Loading Spinner */}
         {isLoading && (
           <div style={{ display: 'flex', alignItems: 'center', paddingRight: '8px' }}>
-            <Loader2 size={16} className="animate-spin" style={{ color: '#8ab4f8' }} />
+            <Loader2 size={16} className="animate-spin" style={{ color: '#a1a1aa' }} />
           </div>
         )}
 
@@ -245,9 +259,9 @@ export function SearchBar({
           title="Locate me via LocationIQ GPS"
         >
           {isLocating ? (
-            <Loader2 size={18} className="animate-spin" style={{ color: '#8ab4f8' }} />
+            <Loader2 size={18} className="animate-spin" style={{ color: '#a1a1aa' }} />
           ) : (
-            <Navigation size={18} style={{ color: '#8ab4f8' }} />
+            <Navigation size={18} style={{ color: '#a1a1aa' }} />
           )}
         </button>
       </div>
@@ -273,7 +287,7 @@ export function SearchBar({
                 className="gmaps-dropdown-item"
               >
                 <div style={{ display: 'flex', alignItems: 'center', color: '#9aa0a6', paddingTop: '2px' }}>
-                  <MapPin size={17} style={{ color: '#8ab4f8' }} />
+                  <MapPin size={17} style={{ color: '#a1a1aa' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '13px', fontWeight: 600, color: '#e8eaed', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -303,7 +317,7 @@ export function SearchBar({
               className="gmaps-chip"
               title={`${corridor.name}: ${corridor.desc}`}
             >
-              <MapPin size={11} style={{ color: '#8ab4f8' }} />
+              <MapPin size={11} style={{ color: '#a1a1aa' }} />
               <span>{corridor.name}</span>
             </button>
           ))}

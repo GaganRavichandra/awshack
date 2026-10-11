@@ -17,7 +17,7 @@ export function InfrastructureMatrix({ infrastructureStatus, onFocusNode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div className="panel-section-title">
-        <Building2 size={13} style={{ color: '#00f0ff' }} />
+        <Building2 size={13} style={{ color: '#a1a1aa' }} />
         <span>Critical Infrastructure Vulnerability Matrix</span>
       </div>
 

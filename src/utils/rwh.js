@@ -101,13 +101,14 @@ export function inferBlockZoning(label = '', center = null) {
 export function calculateBlockRWH({
   blockBounds,
   blockLabel = '',
-  rainfallMm = 120,
+  rainfallMm = 0,
   renderedBuildings = null,
   customRunoffCoeff = null,
   customFilterEfficiency = null
 }) {
   const BLOCK_TOTAL_AREA_M2 = 1_000_000; // Standard 1 km x 1 km block = 1,000,000 m²
   const rainDepthMm = Math.max(0, Number(rainfallMm) || 0);
+  const isPaused = rainDepthMm > 50;
 
   const zoning = inferBlockZoning(blockLabel, blockBounds?.center);
   const runoffCoeff = customRunoffCoeff || zoning.runoffCoefficient || 0.85;
@@ -160,24 +161,32 @@ export function calculateBlockRWH({
     buildingCount = Math.round(calculatedTerraceAreaM2 / 380); // ~380 m² average terrace per structure
   }
 
-  // 3. Hydrology Formula:
-  // Harvestable_Volume (Liters) = Rainfall (mm) * Terrace_Area (m²) * Runoff_Coefficient * Filter_Efficiency
-  // Note: 1 mm of rain over 1 m² = 1.0 Liter
-  const harvestableLiters = Math.round(rainDepthMm * calculatedTerraceAreaM2 * runoffCoeff * filterEff);
+  // 3. Hydrology Formula strictly based on live rain:
+  // - If rain == 0 mm: Potential is 0 kL / 0 L
+  // - If rain > 50 mm: RWH is paused (>50mm bypass) to prevent cistern rupture and foundation flood
+  // - If 0 < rain <= 50 mm: Harvestable_Volume (L) = rainDepthMm * calculatedTerraceAreaM2 * runoffCoeff * filterEff
+  let harvestableLiters = 0;
+  if (!isPaused && rainDepthMm > 0) {
+    harvestableLiters = Math.round(rainDepthMm * calculatedTerraceAreaM2 * runoffCoeff * filterEff);
+  }
   const harvestableKL = Number((harvestableLiters / 1_000).toFixed(1)); // 1 kL = 1 m³ = 1,000 Liters
   const harvestableM3 = harvestableKL;
 
   // 4. Non-Potable Water Supply Capacity Breakdown:
-  // Standard non-potable domestic requirement (toilet flushing + landscaping + maintenance) = 45 LPCD
-  // Estimated building occupants based on terrace footprint and density
   const estimatedOccupants = Math.max(100, Math.round(calculatedTerraceAreaM2 / zoning.occupantDensityM2));
   const dailyNonPotableDemandL = Math.max(4_500, estimatedOccupants * 45); // Liters / day
 
-  const daysNonPotableSupply = harvestableLiters > 0
+  const daysNonPotableSupply = (!isPaused && harvestableLiters > 0)
     ? Math.round(harvestableLiters / dailyNonPotableDemandL)
     : 0;
 
   const terraceCoveragePercent = Number(((calculatedTerraceAreaM2 / BLOCK_TOTAL_AREA_M2) * 100).toFixed(1));
+
+  const statusText = isPaused
+    ? '>50mm Paused (Surge Bypass)'
+    : rainDepthMm === 0
+      ? '0 kL (0 mm Live Rain)'
+      : `${harvestableKL.toLocaleString()} kL Active`;
 
   return {
     blockTotalAreaM2: BLOCK_TOTAL_AREA_M2,
@@ -188,6 +197,8 @@ export function calculateBlockRWH({
     zoningCategory: zoning.category,
     zoningDescription: zoning.description,
     rainfallMm: rainDepthMm,
+    isPaused,
+    statusText,
     runoffCoefficient: runoffCoeff,
     filterEfficiency: filterEff,
     harvestableLiters,

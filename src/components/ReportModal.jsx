@@ -68,10 +68,10 @@ export function ReportModal({
         style={{
           width: '100%',
           maxWidth: '520px',
-          background: 'rgba(19, 24, 34, 0.96)',
+          background: '#121215',
           borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.65), 0 0 20px rgba(0, 240, 255, 0.15)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.85)',
           overflow: 'hidden'
         }}
       >
@@ -286,7 +286,7 @@ export function ReportModal({
             style={{
               padding: '12px',
               borderRadius: '8px',
-              background: isSuccess ? '#10b981' : 'linear-gradient(135deg, #00f0ff 0%, #0077b6 100%)',
+              background: isSuccess ? '#10b981' : 'linear-gradient(135deg, #e3af35 0%, #c2820a 100%)',
               border: 'none',
               color: '#05080c',
               fontWeight: 800,

@@ -30,7 +30,7 @@ export function DevToolsGuideModal({ isOpen, onClose, currentEndpoint }) {
           </div>
 
           <div>
-            <h4 style={{ color: '#00f0ff', fontSize: '12px', fontWeight: 700, marginBottom: '6px' }}>
+            <h4 style={{ color: '#fafafa', fontSize: '12px', fontWeight: 700, marginBottom: '6px' }}>
               Active Simulation Endpoint:
             </h4>
             <div className="font-mono" style={{
@@ -38,7 +38,7 @@ export function DevToolsGuideModal({ isOpen, onClose, currentEndpoint }) {
               border: '1px solid #1e2c45',
               padding: '6px 10px',
               fontSize: '11px',
-              color: '#38bdf8',
+              color: '#a1a1aa',
               wordBreak: 'break-all'
             }}>
               {currentEndpoint || 'http://127.0.0.1:8000'}
@@ -61,7 +61,7 @@ export function DevToolsGuideModal({ isOpen, onClose, currentEndpoint }) {
                   <li>Confirm <strong>Request URL</strong> matches your AWS Lambda Function URL.</li>
                   <li>Confirm <strong>Method = POST</strong>.</li>
                   <li>Confirm <strong>Status = 200 OK</strong>.</li>
-                  <li>Inspect <strong>Payload</strong>: shows <code className="font-mono" style={{ color: '#00f0ff' }}>&#123;"project":"4clique","rainfall_mm":180,"intervention":"DESILT_RAJAKALUVES"&#125;</code></li>
+                  <li>Inspect <strong>Payload</strong>: shows <code className="font-mono" style={{ color: '#fafafa' }}>&#123;"project":"4clique","rainfall_mm":180,"intervention":"DESILT_RAJAKALUVES"&#125;</code></li>
                   <li>Inspect <strong>Response</strong>: shows returned <code className="font-mono" style={{ color: '#10b981' }}>scenario_id</code>, <code className="font-mono" style={{ color: '#10b981' }}>flooded_sqkm</code>, <code className="font-mono" style={{ color: '#10b981' }}>infrastructure_status</code>, and <code className="font-mono" style={{ color: '#10b981' }}>flood_reduction_percentage</code>.</li>
                 </ul>
               </li>

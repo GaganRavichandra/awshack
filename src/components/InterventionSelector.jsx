@@ -15,7 +15,7 @@ export const INTERVENTIONS = [
     title: "Rajakaluve Desilting (+35% conveyance)",
     subtext: "Systematic deep desilting of Bellandur-Varthur primary rajakaluves. Boosts channel conveyance from 120,000 to 162,000 m³/hr.",
     badge: "+35% HYDRAULIC CAPACITY",
-    badgeColor: "#00f0ff",
+    badgeColor: "#a1a1aa",
     icon: Wrench
   },
   {
@@ -32,7 +32,7 @@ export function InterventionSelector({ activeIntervention, onSelectIntervention 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       <div className="panel-section-title">
-        <Sliders size={13} style={{ color: '#00f0ff' }} />
+        <Sliders size={13} style={{ color: '#a1a1aa' }} />
         <span>Mitigation Intervention Selector</span>
       </div>
 

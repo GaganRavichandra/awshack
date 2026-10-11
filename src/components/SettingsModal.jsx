@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Settings, X, Save, RefreshCw } from 'lucide-react';
+import { MAPBOX_VERIFIED_TOKEN } from '../config/camera';
 
 export function SettingsModal({
   isOpen,
@@ -9,7 +10,7 @@ export function SettingsModal({
   awsLambdaUrl,
   onSaveAwsLambdaUrl
 }) {
-  const [tempToken, setTempToken] = useState(mapboxToken);
+  const [tempToken, setTempToken] = useState(mapboxToken || MAPBOX_VERIFIED_TOKEN);
   const [tempUrl, setTempUrl] = useState(awsLambdaUrl);
   const [savedNotice, setSavedNotice] = useState(false);
 
@@ -35,7 +36,7 @@ export function SettingsModal({
       >
         <div className="command-panel-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Settings size={14} style={{ color: '#00f0ff' }} />
+            <Settings size={14} style={{ color: '#a1a1aa' }} />
             <span style={{ color: '#ffffff' }}>System Endpoints & Secrets Configuration</span>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
@@ -45,9 +46,26 @@ export function SettingsModal({
 
         <form onSubmit={handleSave} style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#94a3b8', marginBottom: '6px' }}>
-              MAPBOX PUBLIC ACCESS TOKEN (VITE_MAPBOX_TOKEN)
-            </label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <label style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8' }}>
+                MAPBOX PUBLIC ACCESS TOKEN (VITE_MAPBOX_TOKEN)
+              </label>
+              <button
+                type="button"
+                onClick={() => setTempToken(MAPBOX_VERIFIED_TOKEN)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#fafafa',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                Reset to Default Key
+              </button>
+            </div>
             <input
               type="text"
               value={tempToken}
@@ -104,7 +122,7 @@ export function SettingsModal({
             <button type="button" onClick={onClose} className="btn-secondary">
               Cancel
             </button>
-            <button type="submit" className="btn-secondary" style={{ borderColor: '#00f0ff', color: '#00f0ff' }}>
+            <button type="submit" className="btn-secondary" style={{ borderColor: 'rgba(255, 255, 255, 0.2)', color: '#fafafa' }}>
               <Save size={13} />
               <span>Apply Configuration</span>
             </button>

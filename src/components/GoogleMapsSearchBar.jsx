@@ -22,7 +22,7 @@ import {
   Route,
   CloudRain
 } from 'lucide-react';
-import { searchLocationIQ } from '../services/locationiq';
+import { searchLocationIQ, cleanToEnglish } from '../services/locationiq';
 import { BENGALURU_HOTSPOTS } from '../config/bengaluruHotspots';
 import { KARNATAKA_DRAINS } from '../config/karnatakaDrains';
 
@@ -125,6 +125,9 @@ export function GoogleMapsSearchBar({
   locationiqToken,
   // Secondary Ribbon Actions
   rainfallMm = 120,
+  liveRainfallMm = 0,
+  isRwhPaused = false,
+  rwhStats = null,
   onOpenRWH,
   onToggleOrbit,
   isOrbiting = false,
@@ -144,10 +147,11 @@ export function GoogleMapsSearchBar({
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const [isToolsOpen, setIsToolsOpen] = useState(true); // Starts expanded/open on initial app load
+  const [isToolsOpen, setIsToolsOpen] = useState(true); // Starts open on initial site load
 
   const debounceRef = useRef(null);
   const containerRef = useRef(null);
+  const toolsRef = useRef(null);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -155,6 +159,9 @@ export function GoogleMapsSearchBar({
       if (containerRef.current && !containerRef.current.contains(e.target)) {
         setIsOpen(false);
         setHighlightedIndex(-1);
+      }
+      if (toolsRef.current && !toolsRef.current.contains(e.target)) {
+        setIsToolsOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -206,12 +213,17 @@ export function GoogleMapsSearchBar({
     debounceRef.current = setTimeout(async () => {
       try {
         const items = await searchLocationIQ(val, locationiqToken);
-        const formattedRemote = (items || []).map(item => ({
-          ...item,
-          main_text: item.display_name.split(',')[0],
-          secondary_text: item.display_name.split(',').slice(1, 3).join(', '),
-          category: 'PLACE'
-        }));
+        const formattedRemote = (items || []).map(item => {
+          const cleanName = cleanToEnglish(item.display_name) || item.display_name;
+          const parts = cleanName.split(',');
+          return {
+            ...item,
+            display_name: cleanName,
+            main_text: parts[0]?.trim() || cleanName,
+            secondary_text: parts.slice(1, 3).map(p => p.trim()).join(', '),
+            category: 'PLACE'
+          };
+        });
 
         setResults(prev => {
           const existingIds = new Set(localMatches.map(m => m.place_id));
@@ -266,7 +278,8 @@ export function GoogleMapsSearchBar({
     const lat = parseFloat(item.lat);
     const lng = parseFloat(item.lon);
     if (!isNaN(lat) && !isNaN(lng)) {
-      const label = item.main_text || item.display_name.split(',')[0];
+      const raw = item.main_text || (item.display_name ? item.display_name.split(',')[0] : '');
+      const label = cleanToEnglish(raw) || raw;
       onSelectLocation([lng, lat], label);
       setQuery(label);
       setIsOpen(false);
@@ -281,7 +294,7 @@ export function GoogleMapsSearchBar({
     setHighlightedIndex(-1);
   };
 
-  const isRWHAvailable = rainfallMm <= 50;
+  const isRWHAvailable = true;
 
   return (
     <div
@@ -304,7 +317,7 @@ export function GoogleMapsSearchBar({
           gap: '8px',
           width: '100%',
           position: 'relative',
-          zIndex: 40
+          zIndex: 100
         }}
       >
         {/* 1A. STANDALONE SEARCH INPUT BAR */}
@@ -316,18 +329,19 @@ export function GoogleMapsSearchBar({
             display: 'flex',
             alignItems: 'center',
             height: '44px',
-            padding: '0 12px',
-            background: 'rgba(28, 28, 30, 0.94)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            borderRadius: '16px',
-            border: '1px solid #3A3A3C',
+            padding: '0 10px',
+            background: 'rgba(16, 16, 19, 0.96)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.55)',
             position: 'relative',
+            overflow: 'visible',
             transition: 'border-color 0.18s ease, box-shadow 0.18s ease'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', paddingRight: '8px', color: '#FFFFFF' }}>
+          <div style={{ display: 'flex', alignItems: 'center', paddingRight: '8px', color: '#a1a1aa' }}>
             <Search size={17} />
           </div>
 
@@ -351,7 +365,7 @@ export function GoogleMapsSearchBar({
               flex: 1,
               background: 'transparent',
               border: 'none',
-              color: '#FFFFFF',
+              color: '#f8fafc',
               fontSize: '13px',
               fontWeight: 500,
               outline: 'none',
@@ -368,7 +382,7 @@ export function GoogleMapsSearchBar({
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: 'rgba(235, 235, 245, 0.60)',
+                color: '#94a3b8',
                 cursor: 'pointer',
                 padding: '4px',
                 display: 'flex',
@@ -377,8 +391,8 @@ export function GoogleMapsSearchBar({
                 borderRadius: '50%',
                 transition: 'color 0.15s'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#FFFFFF'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(235, 235, 245, 0.60)'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#ffffff'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; }}
             >
               <X size={15} />
             </button>
@@ -386,7 +400,7 @@ export function GoogleMapsSearchBar({
 
           {isLoading && (
             <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '4px' }}>
-              <Loader2 size={16} className="animate-spin" style={{ color: '#0A84FF' }} />
+              <Loader2 size={16} className="animate-spin" style={{ color: '#a1a1aa' }} />
             </div>
           )}
 
@@ -399,15 +413,15 @@ export function GoogleMapsSearchBar({
                 top: '50px',
                 left: 0,
                 right: 0,
-                background: 'rgba(28, 28, 30, 0.98)',
+                background: 'rgba(18, 18, 22, 0.98)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
-                borderRadius: '16px',
-                border: '1px solid #3A3A3C',
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
                 boxShadow: '0 16px 40px rgba(0, 0, 0, 0.75)',
                 maxHeight: '320px',
                 overflowY: 'auto',
-                zIndex: 60
+                zIndex: 9999
               }}
             >
               {results.map((item, idx) => {
@@ -417,13 +431,13 @@ export function GoogleMapsSearchBar({
                 const isHighlighted = idx === highlightedIndex;
 
                 const badgeColor =
-                  category === 'DRAIN' ? '#0A84FF' :
-                  category === 'HOTSPOT' ? '#FF9F0A' :
-                  category === 'WARD' ? '#30D158' : '#0A84FF';
+                  category === 'DRAIN' ? '#a1a1aa' :
+                  category === 'HOTSPOT' ? '#fbbf24' :
+                  category === 'WARD' ? '#34d399' : '#a1a1aa';
                 const badgeBg =
-                  category === 'DRAIN' ? 'rgba(10, 132, 255, 0.16)' :
-                  category === 'HOTSPOT' ? 'rgba(255, 159, 10, 0.16)' :
-                  category === 'WARD' ? 'rgba(48, 209, 88, 0.16)' : 'rgba(10, 132, 255, 0.16)';
+                  category === 'DRAIN' ? 'rgba(255, 255, 255, 0.08)' :
+                  category === 'HOTSPOT' ? 'rgba(251, 191, 36, 0.14)' :
+                  category === 'WARD' ? 'rgba(52, 211, 153, 0.14)' : 'rgba(255, 255, 255, 0.06)';
 
                 return (
                   <div
@@ -437,21 +451,21 @@ export function GoogleMapsSearchBar({
                       gap: '10px',
                       padding: '10px 14px',
                       cursor: 'pointer',
-                      borderBottom: '1px solid #3A3A3C',
-                      background: isHighlighted ? 'rgba(10, 132, 255, 0.15)' : 'transparent',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
+                      background: isHighlighted ? 'rgba(255, 255, 255, 0.06)' : 'transparent',
                       transition: 'background 0.15s ease'
                     }}
                   >
                     {category === 'DRAIN' ? (
-                      <Droplets size={16} style={{ color: '#0A84FF', flexShrink: 0 }} />
+                      <Droplets size={16} style={{ color: '#a1a1aa', flexShrink: 0 }} />
                     ) : category === 'HOTSPOT' ? (
-                      <AlertTriangle size={16} style={{ color: '#FF9F0A', flexShrink: 0 }} />
+                      <AlertTriangle size={16} style={{ color: '#fbbf24', flexShrink: 0 }} />
                     ) : (
-                      <MapPin size={16} style={{ color: '#0A84FF', flexShrink: 0 }} />
+                      <MapPin size={16} style={{ color: '#a1a1aa', flexShrink: 0 }} />
                     )}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#e8eaed', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {mainText}
                         </span>
                         <span style={{
@@ -459,18 +473,18 @@ export function GoogleMapsSearchBar({
                           fontWeight: 700,
                           color: badgeColor,
                           background: badgeBg,
-                          padding: '2px 6px',
-                          borderRadius: '6px',
+                          padding: '1px 5px',
+                          borderRadius: '3px',
                           letterSpacing: '0.04em'
                         }}>
                           {category}
                         </span>
                       </div>
-                      <div style={{ fontSize: '11px', color: 'rgba(235, 235, 245, 0.60)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '1px' }}>
+                      <div style={{ fontSize: '11px', color: '#9aa0a6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '1px' }}>
                         {secondaryText}
                       </div>
                     </div>
-                    <ArrowRight size={13} style={{ color: isHighlighted ? '#0A84FF' : 'rgba(235, 235, 245, 0.40)', flexShrink: 0 }} />
+                    <ArrowRight size={13} style={{ color: isHighlighted ? '#ffffff' : '#71717a', flexShrink: 0 }} />
                   </div>
                 );
               })}
@@ -478,7 +492,7 @@ export function GoogleMapsSearchBar({
           )}
         </div>
 
-        {/* 1B. STANDALONE LOCATE ME BUTTON (Apple Maps Circular Control) */}
+        {/* 1B. STANDALONE LOCATE ME BUTTON */}
         <button
           type="button"
           onClick={onLocateMe}
@@ -491,73 +505,34 @@ export function GoogleMapsSearchBar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(37, 37, 40, 0.85)',
+            background: 'rgba(20, 20, 24, 0.94)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
-            borderRadius: '50%',
-            border: '1px solid #3A3A3C',
-            color: '#FFFFFF',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            color: '#a1a1aa',
             cursor: 'pointer',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
             transition: 'all 0.18s ease'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(58, 58, 60, 0.9)';
-            e.currentTarget.style.color = '#0A84FF';
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.18)';
+            e.currentTarget.style.color = '#ffffff';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(37, 37, 40, 0.85)';
-            e.currentTarget.style.color = '#FFFFFF';
+            e.currentTarget.style.background = 'rgba(20, 20, 24, 0.94)';
+            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+            e.currentTarget.style.color = '#a1a1aa';
           }}
         >
           <Navigation size={17} />
         </button>
-
-        {/* 1C. STANDALONE SIMULATE ACTION PILL (Primary Action Button #0A84FF) */}
-        <button
-          type="button"
-          onClick={onToggleSimulate}
-          title={isSimulateMode ? "Exit Simulation Mode" : "Extract 1 km² block and simulate flood runoff"}
-          style={{
-            height: '44px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '0 16px',
-            borderRadius: '14px',
-            background: isSimulateMode
-              ? '#0071E3'
-              : '#0A84FF',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: isSimulateMode ? '1px solid #0071E3' : '1px solid #0A84FF',
-            color: '#FFFFFF',
-            fontWeight: 600,
-            fontSize: '12px',
-            letterSpacing: '0.04em',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-            boxShadow: isSimulateMode
-              ? '0 0 16px rgba(10, 132, 255, 0.6), 0 8px 32px rgba(0, 0, 0, 0.5)'
-              : '0 4px 16px rgba(10, 132, 255, 0.35)',
-            transition: 'all 0.2s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#0071E3';
-            e.currentTarget.style.borderColor = '#0071E3';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = isSimulateMode ? '#0071E3' : '#0A84FF';
-            e.currentTarget.style.borderColor = isSimulateMode ? '#0071E3' : '#0A84FF';
-          }}
-        >
-          <Play size={13} fill="#FFFFFF" />
-          <span>{isSimulateMode ? 'SIMULATING' : 'SIMULATE'}</span>
-        </button>
       </div>
 
-      {/* 2. "TOOLS & OVERRIDES" DROPDOWN (STARTS EXPANDED ON MOUNT, USER-CONTROLLED TOGGLE ONLY) */}
+      {/* 2. "TOOLS & OVERRIDES" DROPDOWN (STARTS OPEN ON INITIAL LOAD, AUTO-CLOSES ON OPTION SELECTION) */}
       <div
+        ref={toolsRef}
         className="gmaps-tools-dropdown-container"
         style={{
           display: 'flex',
@@ -567,41 +542,97 @@ export function GoogleMapsSearchBar({
           maxWidth: '320px'
         }}
       >
-        <button
-          type="button"
-          onClick={() => setIsToolsOpen(prev => !prev)}
-          title={isToolsOpen ? "Click to collapse Tools & Overrides" : "Click to expand Tools & Overrides"}
-          style={{
-            alignSelf: 'flex-start',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '6px 14px',
-            background: isToolsOpen ? '#2C2C2E' : 'rgba(37, 37, 40, 0.85)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            borderRadius: '16px',
-            border: '1px solid #3A3A3C',
-            color: '#FFFFFF',
-            fontSize: '11px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(0, 0, 0, 0.45)',
-            transition: 'all 0.18s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#0A84FF';
-            e.currentTarget.style.color = '#0A84FF';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = '#3A3A3C';
-            e.currentTarget.style.color = '#FFFFFF';
-          }}
-        >
-          <Sliders size={13} style={{ color: '#0A84FF' }} />
-          <span>Tools & Overrides</span>
-          {isToolsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            type="button"
+            onClick={() => setIsToolsOpen(prev => !prev)}
+            title={isToolsOpen ? "Click to collapse Tools & Overrides" : "Click to expand Tools & Overrides"}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              background: isToolsOpen ? '#202025' : '#141418',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              borderRadius: '20px',
+              border: isToolsOpen ? '1px solid rgba(255, 255, 255, 0.18)' : '1px solid rgba(255, 255, 255, 0.08)',
+              color: isToolsOpen ? '#ffffff' : '#e4e4e7',
+              fontSize: '11px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
+              transition: 'all 0.18s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.22)';
+              e.currentTarget.style.color = '#ffffff';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = isToolsOpen ? '1px solid rgba(255, 255, 255, 0.18)' : '1px solid rgba(255, 255, 255, 0.08)';
+              e.currentTarget.style.color = isToolsOpen ? '#ffffff' : '#e4e4e7';
+            }}
+          >
+            <Sliders size={13} style={{ color: '#a1a1aa' }} />
+            <span>Tools & Overrides</span>
+            {isToolsOpen ? <ChevronUp size={12} style={{ color: '#71717a' }} /> : <ChevronDown size={12} style={{ color: '#71717a' }} />}
+          </button>
+
+          {/* Direct Quick-Access RWH Potential Pill */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isRwhPaused) {
+                onOpenRWH();
+                setIsToolsOpen(false);
+              }
+            }}
+            disabled={isRwhPaused}
+            title={
+              isRwhPaused
+                ? "RWH Inflow Paused: Live precipitation exceeds 50mm threshold. Stormwater bypass active."
+                : liveRainfallMm === 0
+                  ? "RWH Potential: 0 kL (0.0 mm live rainfall in selected area)"
+                  : `RWH Potential: ${rwhStats?.harvestableKL ?? 0} kL (${liveRainfallMm} mm live rain)`
+            }
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              background: isRwhPaused ? 'rgba(239, 68, 68, 0.1)' : '#141418',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              borderRadius: '20px',
+              border: isRwhPaused ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)',
+              color: isRwhPaused ? '#f87171' : '#e4e4e7',
+              fontSize: '11px',
+              fontWeight: 700,
+              cursor: isRwhPaused ? 'not-allowed' : 'pointer',
+              opacity: isRwhPaused ? 0.6 : 1,
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
+              transition: 'all 0.18s ease'
+            }}
+            onMouseEnter={(e) => {
+              if (!isRwhPaused) {
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.22)';
+                e.currentTarget.style.color = '#ffffff';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isRwhPaused) {
+                e.currentTarget.style.borderColor = '1px solid rgba(255, 255, 255, 0.08)';
+                e.currentTarget.style.color = '#e4e4e7';
+              }
+            }}
+          >
+            <Droplets size={13} style={{ color: isRwhPaused ? '#f87171' : '#a1a1aa' }} />
+            <span>
+              {isRwhPaused ? '>50mm Paused' : liveRainfallMm === 0 ? 'RWH: 0 kL' : `RWH: ${rwhStats?.harvestableKL ?? 0} kL`}
+            </span>
+          </button>
+        </div>
 
         {isToolsOpen && (
           <div
@@ -609,102 +640,121 @@ export function GoogleMapsSearchBar({
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '6px',
-              padding: '10px',
-              background: 'rgba(28, 28, 30, 0.96)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              borderRadius: '16px',
-              border: '1px solid #3A3A3C',
-              boxShadow: '0 12px 36px rgba(0, 0, 0, 0.65)',
+              gap: '4px',
+              padding: '8px',
+              background: 'rgba(18, 18, 22, 0.98)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              borderRadius: '12px',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 16px 40px rgba(0, 0, 0, 0.7)',
               width: '100%',
               animation: 'fadeInSlideDown 0.2s ease-out'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 6px 6px 6px', borderBottom: '1px solid #3A3A3C', marginBottom: '2px' }}>
-              <span style={{ fontSize: '10px', fontWeight: 600, color: 'rgba(235, 235, 245, 0.60)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 6px 4px 6px', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', marginBottom: '2px' }}>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Digital Twin Quick Actions
               </span>
-              <span style={{ fontSize: '9.5px', color: 'rgba(235, 235, 245, 0.40)' }}>Primary Controls</span>
+              <span style={{ fontSize: '9.5px', color: '#64748b' }}>Primary Controls</span>
             </div>
 
             {/* Action 1: Rainwater Harvesting Potential */}
             <button
               type="button"
-              onClick={isRWHAvailable ? onOpenRWH : null}
-              disabled={!isRWHAvailable}
-              title={isRWHAvailable ? "Calculate Rainwater Harvesting rooftop potential" : "RWH calculations paused: Diverting surface surge to emergency flood bypass."}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isRwhPaused) {
+                  onOpenRWH();
+                  setIsToolsOpen(false);
+                }
+              }}
+              disabled={isRwhPaused}
+              title={isRwhPaused ? "RWH Inflow Paused: Rain > 50mm bypass active" : "Calculate Rainwater Harvesting rooftop potential and catchment sizing"}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '8px 10px',
-                borderRadius: '10px',
-                border: '1px solid #3A3A3C',
-                background: isRWHAvailable ? '#2C2C2E' : 'rgba(44, 44, 46, 0.5)',
-                color: isRWHAvailable ? '#FFFFFF' : 'rgba(235, 235, 245, 0.40)',
+                padding: '7px 10px',
+                borderRadius: '8px',
+                border: isRwhPaused ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid rgba(255, 255, 255, 0.07)',
+                background: isRwhPaused ? 'rgba(239, 68, 68, 0.06)' : 'rgba(255, 255, 255, 0.03)',
+                color: isRwhPaused ? '#f87171' : '#f4f4f5',
                 fontSize: '11.5px',
                 fontWeight: 600,
-                cursor: isRWHAvailable ? 'pointer' : 'not-allowed',
-                opacity: isRWHAvailable ? 1 : 0.6,
+                cursor: isRwhPaused ? 'not-allowed' : 'pointer',
+                opacity: isRwhPaused ? 0.6 : 1,
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                if (isRWHAvailable) {
-                  e.currentTarget.style.background = 'rgba(58, 58, 60, 0.9)';
-                  e.currentTarget.style.borderColor = '#0A84FF';
+                if (!isRwhPaused) {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.07)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
                 }
               }}
               onMouseLeave={(e) => {
-                if (isRWHAvailable) {
-                  e.currentTarget.style.background = '#2C2C2E';
-                  e.currentTarget.style.borderColor = '#3A3A3C';
+                if (!isRwhPaused) {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.07)';
                 }
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Droplets size={14} style={{ color: isRWHAvailable ? '#0A84FF' : 'rgba(235, 235, 245, 0.40)' }} />
-                <span>RWH Potential</span>
+                <Droplets size={14} style={{ color: isRwhPaused ? '#f87171' : '#a1a1aa' }} />
+                <span>{isRwhPaused ? 'RWH (>50mm Paused)' : 'RWH Potential'}</span>
               </div>
-              <span style={{ fontSize: '9.5px', color: isRWHAvailable ? '#0A84FF' : '#FF453A', fontWeight: 600, padding: '2px 6px', borderRadius: '6px', background: 'rgba(0, 0, 0, 0.3)' }}>
-                {isRWHAvailable ? 'Rooftop Model' : '>50mm Paused'}
+              <span style={{
+                fontSize: '9.5px',
+                color: isRwhPaused ? '#f87171' : '#a1a1aa',
+                fontWeight: 700,
+                padding: '2px 6px',
+                borderRadius: '4px',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+                background: 'rgba(255, 255, 255, 0.04)'
+              }}>
+                {isRwhPaused ? 'Surge Bypass' : liveRainfallMm === 0 ? '0 kL' : `${rwhStats?.harvestableKL ?? 0} kL`}
               </span>
             </button>
 
             {/* Action 2: 360° Panoramic Look-Around / Street View */}
             <button
               type="button"
-              onClick={onToggleOrbit}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleOrbit();
+                setIsToolsOpen(false);
+              }}
               title={isOrbiting ? "Exit 360° Street View" : "Enter 360° panoramic first-person street view (pitch & yaw look-around)"}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '8px 10px',
-                borderRadius: '10px',
-                border: `1px solid ${isOrbiting ? '#0A84FF' : '#3A3A3C'}`,
-                background: isOrbiting ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E',
-                color: '#FFFFFF',
+                padding: '7px 10px',
+                borderRadius: '8px',
+                border: `1px solid ${isOrbiting ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.07)'}`,
+                background: isOrbiting ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.03)',
+                color: isOrbiting ? '#ffffff' : '#f4f4f5',
                 fontSize: '11.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                boxShadow: isOrbiting ? '0 0 12px rgba(10, 132, 255, 0.35)' : 'none',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = isOrbiting ? 'rgba(10, 132, 255, 0.28)' : 'rgba(58, 58, 60, 0.9)';
+                e.currentTarget.style.background = isOrbiting ? 'rgba(255, 255, 255, 0.14)' : 'rgba(255, 255, 255, 0.07)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = isOrbiting ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E';
+                e.currentTarget.style.background = isOrbiting ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.borderColor = isOrbiting ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.07)';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <RotateCcw size={14} style={{ transform: isOrbiting ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: isOrbiting ? '#0A84FF' : '#FFFFFF' }} />
+                <RotateCcw size={14} style={{ transform: isOrbiting ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: isOrbiting ? '#ffffff' : '#a1a1aa' }} />
                 <span>360° View</span>
               </div>
-              <span style={{ fontSize: '9.5px', color: isOrbiting ? '#0A84FF' : 'rgba(235, 235, 245, 0.60)', fontWeight: 600, padding: '2px 6px', borderRadius: '6px', background: 'rgba(0, 0, 0, 0.3)' }}>
+              <span style={{ fontSize: '9.5px', color: isOrbiting ? '#ffffff' : '#a1a1aa', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.06)', background: 'rgba(255, 255, 255, 0.04)' }}>
                 {isOrbiting ? 'Active Orbit' : 'Pitch & Yaw'}
               </span>
             </button>
@@ -712,35 +762,41 @@ export function GoogleMapsSearchBar({
             {/* Action 3: 3D Buildings Mesh */}
             <button
               type="button"
-              onClick={onToggle3DBuildings}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggle3DBuildings();
+                setIsToolsOpen(false);
+              }}
               title="Toggle extruded 3D buildings"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '8px 10px',
-                borderRadius: '10px',
-                border: `1px solid ${show3DBuildings ? '#0A84FF' : '#3A3A3C'}`,
-                background: show3DBuildings ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E',
-                color: '#FFFFFF',
+                padding: '7px 10px',
+                borderRadius: '8px',
+                border: `1px solid ${show3DBuildings ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.07)'}`,
+                background: show3DBuildings ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.03)',
+                color: show3DBuildings ? '#ffffff' : '#f4f4f5',
                 fontSize: '11.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = show3DBuildings ? 'rgba(10, 132, 255, 0.28)' : 'rgba(58, 58, 60, 0.9)';
+                e.currentTarget.style.background = show3DBuildings ? 'rgba(255, 255, 255, 0.14)' : 'rgba(255, 255, 255, 0.07)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = show3DBuildings ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E';
+                e.currentTarget.style.background = show3DBuildings ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.borderColor = show3DBuildings ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.07)';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Building2 size={14} style={{ color: show3DBuildings ? '#0A84FF' : '#FFFFFF' }} />
+                <Building2 size={14} style={{ color: show3DBuildings ? '#ffffff' : '#a1a1aa' }} />
                 <span>3D Buildings</span>
               </div>
-              <span style={{ fontSize: '9.5px', color: show3DBuildings ? '#0A84FF' : 'rgba(235, 235, 245, 0.60)', fontWeight: 600, padding: '2px 6px', borderRadius: '6px', background: 'rgba(0, 0, 0, 0.3)' }}>
+              <span style={{ fontSize: '9.5px', color: show3DBuildings ? '#ffffff' : '#71717a', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.06)', background: 'rgba(255, 255, 255, 0.04)' }}>
                 {show3DBuildings ? 'Extruded' : 'Off'}
               </span>
             </button>
@@ -748,45 +804,52 @@ export function GoogleMapsSearchBar({
             {/* Action 4: Top View / Angled View Perspective Toggle */}
             <button
               type="button"
-              onClick={onTogglePerspective}
+              onClick={(e) => {
+                e.stopPropagation();
+                onTogglePerspective();
+                setIsToolsOpen(false);
+              }}
               title={isTopView ? "Switch to 3D Angled Perspective View (pitch: 58°)" : "Switch to 2D Overhead Top-Down View (pitch: 0°)"}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '8px 10px',
-                borderRadius: '10px',
-                border: `1px solid ${isTopView ? '#0A84FF' : '#3A3A3C'}`,
-                background: isTopView ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E',
-                color: '#FFFFFF',
+                padding: '7px 10px',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.07)',
+                background: 'rgba(255, 255, 255, 0.03)',
+                color: '#f4f4f5',
                 fontSize: '11.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = isTopView ? 'rgba(10, 132, 255, 0.28)' : 'rgba(58, 58, 60, 0.9)';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.07)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = isTopView ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.07)';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {isTopView ? (
-                  <Compass size={14} style={{ color: '#0A84FF' }} />
+                  <Compass size={14} style={{ color: '#a1a1aa' }} />
                 ) : (
-                  <Layers size={14} style={{ color: '#FFFFFF' }} />
+                  <Layers size={14} style={{ color: '#a1a1aa' }} />
                 )}
-                <span>{isTopView ? '🗺️ Top View' : '📐 Angled View'}</span>
+                <span>{isTopView ? 'Top View' : 'Angled View'}</span>
               </div>
               <span style={{
                 fontSize: '9.5px',
-                color: isTopView ? '#0A84FF' : 'rgba(235, 235, 245, 0.60)',
-                fontWeight: 600,
+                color: '#a1a1aa',
+                fontWeight: 700,
                 padding: '2px 6px',
-                borderRadius: '6px',
-                background: 'rgba(0, 0, 0, 0.3)'
+                borderRadius: '4px',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+                background: 'rgba(255, 255, 255, 0.04)'
               }}>
                 {isTopView ? '2D Overhead' : '3D Tilt'}
               </span>
@@ -795,37 +858,41 @@ export function GoogleMapsSearchBar({
             {/* Action 5: Demo Simulation Presets */}
             <button
               type="button"
-              onClick={onOpenDemo}
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenDemo();
+                setIsToolsOpen(false);
+              }}
               title="Open simplified Monsoon Peak Scenario demo modal"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '8px 10px',
-                borderRadius: '10px',
-                border: '1px solid #3A3A3C',
-                background: '#2C2C2E',
-                color: '#FFFFFF',
+                padding: '7px 10px',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.07)',
+                background: 'rgba(255, 255, 255, 0.03)',
+                color: '#f4f4f5',
                 fontSize: '11.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(58, 58, 60, 0.9)';
-                e.currentTarget.style.borderColor = '#FF9F0A';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.07)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#2C2C2E';
-                e.currentTarget.style.borderColor = '#3A3A3C';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.07)';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Zap size={14} style={{ color: '#FF9F0A' }} />
+                <Zap size={14} style={{ color: '#a1a1aa' }} />
                 <span>Demo Presets</span>
               </div>
-              <span style={{ fontSize: '9.5px', color: '#FF9F0A', fontWeight: 600, padding: '2px 6px', borderRadius: '6px', background: 'rgba(0, 0, 0, 0.3)' }}>
+              <span style={{ fontSize: '9.5px', color: '#a1a1aa', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.06)', background: 'rgba(255, 255, 255, 0.04)' }}>
                 Monsoon Scenarios
               </span>
             </button>
@@ -833,37 +900,41 @@ export function GoogleMapsSearchBar({
             {/* Action 6: Report / Audit Button */}
             <button
               type="button"
-              onClick={onOpenReport}
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenReport();
+                setIsToolsOpen(false);
+              }}
               title="Citizen & Municipal drainage status override"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '8px 10px',
-                borderRadius: '10px',
-                border: '1px solid #3A3A3C',
-                background: '#2C2C2E',
-                color: '#FFFFFF',
+                padding: '7px 10px',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.07)',
+                background: 'rgba(255, 255, 255, 0.03)',
+                color: '#f4f4f5',
                 fontSize: '11.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(58, 58, 60, 0.9)';
-                e.currentTarget.style.borderColor = '#FF453A';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.07)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#2C2C2E';
-                e.currentTarget.style.borderColor = '#3A3A3C';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.07)';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldAlert size={14} style={{ color: '#FF453A' }} />
+                <ShieldAlert size={14} style={{ color: '#a1a1aa' }} />
                 <span>Citizen Report</span>
               </div>
-              <span style={{ fontSize: '9.5px', color: '#FF453A', fontWeight: 600, padding: '2px 6px', borderRadius: '6px', background: 'rgba(0, 0, 0, 0.3)' }}>
+              <span style={{ fontSize: '9.5px', color: '#a1a1aa', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.06)', background: 'rgba(255, 255, 255, 0.04)' }}>
                 Drain Audit
               </span>
             </button>
@@ -871,42 +942,48 @@ export function GoogleMapsSearchBar({
             {/* Action 7: Alternative Route Planner (Flood Bypass Corridor) */}
             <button
               type="button"
-              onClick={onToggleRoutePlanner}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleRoutePlanner();
+                setIsToolsOpen(false);
+              }}
               title="Open Alternative Route Planner with corridor flood hazard detection & bypass routing"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '8px 10px',
-                borderRadius: '10px',
-                border: `1px solid ${isRoutePlannerOpen ? '#30D158' : '#3A3A3C'}`,
-                background: isRoutePlannerOpen ? 'rgba(48, 209, 88, 0.2)' : '#2C2C2E',
-                color: '#FFFFFF',
+                padding: '7px 10px',
+                borderRadius: '8px',
+                border: `1px solid ${isRoutePlannerOpen ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.07)'}`,
+                background: isRoutePlannerOpen ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.03)',
+                color: isRoutePlannerOpen ? '#ffffff' : '#f4f4f5',
                 fontSize: '11.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                boxShadow: isRoutePlannerOpen ? '0 0 12px rgba(48, 209, 88, 0.35)' : 'none',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = isRoutePlannerOpen ? 'rgba(48, 209, 88, 0.28)' : 'rgba(58, 58, 60, 0.9)';
+                e.currentTarget.style.background = isRoutePlannerOpen ? 'rgba(255, 255, 255, 0.14)' : 'rgba(255, 255, 255, 0.07)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = isRoutePlannerOpen ? 'rgba(48, 209, 88, 0.2)' : '#2C2C2E';
+                e.currentTarget.style.background = isRoutePlannerOpen ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.borderColor = isRoutePlannerOpen ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.07)';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Route size={14} style={{ color: isRoutePlannerOpen ? '#30D158' : '#30D158' }} />
+                <Route size={14} style={{ color: isRoutePlannerOpen ? '#ffffff' : '#a1a1aa' }} />
                 <span>Route Planner</span>
               </div>
               <span style={{
                 fontSize: '9.5px',
-                color: isRoutePlannerOpen ? '#30D158' : '#30D158',
-                fontWeight: 600,
+                color: isRoutePlannerOpen ? '#ffffff' : '#a1a1aa',
+                fontWeight: 700,
                 padding: '2px 6px',
-                borderRadius: '6px',
-                background: 'rgba(0, 0, 0, 0.3)'
+                borderRadius: '4px',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+                background: 'rgba(255, 255, 255, 0.04)'
               }}>
                 {isRoutePlannerOpen ? 'Active' : 'Flood Bypass'}
               </span>
@@ -915,42 +992,48 @@ export function GoogleMapsSearchBar({
             {/* Action 8: Environmental Intelligence & Satellite WMS */}
             <button
               type="button"
-              onClick={onToggleEnvIntel}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleEnvIntel();
+                setIsToolsOpen(false);
+              }}
               title="Open Environmental Intelligence panel with real-time weather & ISRO Bhuvan satellite WMS layers"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '8px 10px',
-                borderRadius: '10px',
-                border: `1px solid ${isEnvIntelOpen ? '#0A84FF' : '#3A3A3C'}`,
-                background: isEnvIntelOpen ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E',
-                color: '#FFFFFF',
+                padding: '7px 10px',
+                borderRadius: '8px',
+                border: `1px solid ${isEnvIntelOpen ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.07)'}`,
+                background: isEnvIntelOpen ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.03)',
+                color: isEnvIntelOpen ? '#ffffff' : '#f4f4f5',
                 fontSize: '11.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                boxShadow: isEnvIntelOpen ? '0 0 12px rgba(10, 132, 255, 0.35)' : 'none',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = isEnvIntelOpen ? 'rgba(10, 132, 255, 0.28)' : 'rgba(58, 58, 60, 0.9)';
+                e.currentTarget.style.background = isEnvIntelOpen ? 'rgba(255, 255, 255, 0.14)' : 'rgba(255, 255, 255, 0.07)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = isEnvIntelOpen ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E';
+                e.currentTarget.style.background = isEnvIntelOpen ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.borderColor = isEnvIntelOpen ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.07)';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CloudRain size={14} style={{ color: '#0A84FF' }} />
+                <CloudRain size={14} style={{ color: isEnvIntelOpen ? '#ffffff' : '#a1a1aa' }} />
                 <span>Environmental Intel</span>
               </div>
               <span style={{
                 fontSize: '9.5px',
-                color: '#0A84FF',
-                fontWeight: 600,
+                color: isEnvIntelOpen ? '#ffffff' : '#a1a1aa',
+                fontWeight: 700,
                 padding: '2px 6px',
-                borderRadius: '6px',
-                background: 'rgba(0, 0, 0, 0.3)'
+                borderRadius: '4px',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+                background: 'rgba(255, 255, 255, 0.04)'
               }}>
                 {isEnvIntelOpen ? 'Active' : 'WMS & Weather'}
               </span>

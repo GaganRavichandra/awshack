@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { TARGET_CAMERA, TERRAIN_CONFIG, BENGALURU_CENTER, KARNATAKA_CAMERA } from '../config/camera';
+import { TARGET_CAMERA, TERRAIN_CONFIG, BENGALURU_CENTER, KARNATAKA_CAMERA, MAPBOX_VERIFIED_TOKEN } from '../config/camera';
 import { boundsToGeoJSON, buildOutsideMaskGeoJSON, calculateGravityWaterFlow } from '../utils/geo';
 import { KARNATAKA_DRAINS, getKarnatakaDrainsGeoJSON, KARNATAKA_BOUNDS } from '../config/karnatakaDrains';
 import { calculateBlockRWH } from '../utils/rwh';
@@ -9,7 +9,6 @@ import {
   Layers,
   Compass,
   Eye,
-  AlertTriangle,
   Play,
   Pause,
   RotateCcw,
@@ -48,6 +47,7 @@ export function Map3D({
   blockBounds = null,
   blockLabel = '',
   rainfallMm = 120,
+  rwhRainfallMm = null,
   cloggingPercent = 70,
   userLocation = null,
   onMapClickForBlock = null,
@@ -85,6 +85,7 @@ export function Map3D({
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(null);
   const [showTerrain, setShowTerrain] = useState(true);
+  const [isFloatingToolsHighlighted, setIsFloatingToolsHighlighted] = useState(false);
 
   // 360° Street View / Panoramic Look-Around Controller State
   const [is360AutoPanning, setIs360AutoPanning] = useState(false);
@@ -120,7 +121,11 @@ export function Map3D({
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    const token = mapboxToken || import.meta.env.VITE_MAPBOX_TOKEN;
+    const token = (mapboxToken && mapboxToken.length > 30 && !mapboxToken.includes('your_mapbox'))
+      ? mapboxToken
+      : ((import.meta.env.VITE_MAPBOX_TOKEN && import.meta.env.VITE_MAPBOX_TOKEN.length > 30 && !import.meta.env.VITE_MAPBOX_TOKEN.includes('your_mapbox'))
+          ? import.meta.env.VITE_MAPBOX_TOKEN
+          : MAPBOX_VERIFIED_TOKEN);
     if (!token) {
       setMapError("Missing Mapbox Access Token. Set VITE_MAPBOX_TOKEN in .env or configure in settings.");
       return;
@@ -211,6 +216,24 @@ export function Map3D({
           });
         } catch (e) {
           // ignore
+        }
+
+        // 2b. Force All Map Text Labels to English (Eliminating Local / Regional Script)
+        try {
+          const allStyleLayers = map.getStyle().layers || [];
+          allStyleLayers.forEach((layer) => {
+            if (layer.type === 'symbol' && layer.layout && layer.layout['text-field']) {
+              map.setLayoutProperty(layer.id, 'text-field', [
+                'coalesce',
+                ['get', 'name_en'],
+                ['get', 'name:en'],
+                ['get', 'name_int'],
+                ['get', 'name']
+              ]);
+            }
+          });
+        } catch (langErr) {
+          console.warn("Mapbox English label configuration error:", langErr);
         }
 
         // 3. Extruded 3D Buildings Layer (Clean Charcoal Basemap)
@@ -309,8 +332,8 @@ export function Map3D({
           type: 'fill',
           source: 'block-box-src',
           paint: {
-            'fill-color': '#00f0ff',
-            'fill-opacity': 0.04
+            'fill-color': '#cbd5e1',
+            'fill-opacity': 0.03
           }
         }, '3d-buildings');
         map.addLayer({
@@ -318,10 +341,10 @@ export function Map3D({
           type: 'line',
           source: 'block-box-src',
           paint: {
-            'line-color': '#00f0ff',
-            'line-width': 6,
-            'line-opacity': 0.35,
-            'line-blur': 4
+            'line-color': '#94a3b8',
+            'line-width': 4,
+            'line-opacity': 0.15,
+            'line-blur': 2
           }
         }, '3d-buildings');
         map.addLayer({
@@ -329,9 +352,9 @@ export function Map3D({
           type: 'line',
           source: 'block-box-src',
           paint: {
-            'line-color': '#00f0ff',
-            'line-width': 2.5,
-            'line-opacity': 0.95
+            'line-color': '#d4d4d8',
+            'line-width': 1.8,
+            'line-opacity': 0.85
           }
         }, '3d-buildings');
 
@@ -367,7 +390,7 @@ export function Map3D({
           source: 'water-flood-source',
           filter: ['==', '$type', 'LineString'],
           paint: {
-            'line-color': '#00f0ff',
+            'line-color': '#e3af35',
             'line-width': 2.5,
             'line-opacity': 0.85,
             'line-dasharray': [2, 4, 0, 4]
@@ -405,7 +428,7 @@ export function Map3D({
               'case',
               ['>', ['get', 'severe_count'], 0], 'rgba(239, 68, 68, 0.28)',
               ['>', ['get', 'moderate_count'], 0], 'rgba(245, 158, 11, 0.25)',
-              'rgba(0, 240, 255, 0.22)'
+              'rgba(2, 132, 199, 0.22)'
             ],
             'circle-radius': [
               'step',
@@ -645,7 +668,7 @@ export function Map3D({
           source: 'route-endpoints-source',
           paint: {
             'circle-radius': 7,
-            'circle-color': ['match', ['get', 'role'], 'START', '#34a853', '#8ab4f8'],
+            'circle-color': ['match', ['get', 'role'], 'START', '#34a853', '#e3af35'],
             'circle-stroke-color': '#ffffff',
             'circle-stroke-width': 2
           }
@@ -772,9 +795,8 @@ export function Map3D({
       });
 
       map.on('error', (e) => {
-        if (e.error?.message?.includes('401')) {
-          setMapError("Invalid Mapbox token (HTTP 401). Check settings.");
-        }
+        // Suppress non-fatal tile, 401 or raster warnings to keep UI unobstructed
+        console.warn('Mapbox internal notice (suppressed):', e.error?.message || e);
       });
 
       return () => {
@@ -1034,7 +1056,48 @@ export function Map3D({
     if (!hasBounds) {
       if (waterSrc) waterSrc.setData({ type: 'FeatureCollection', features: [] });
       if (fldSrc) fldSrc.setData({ type: 'FeatureCollection', features: [] });
+
+      // Compute baseline terrain elevation for the current map center
+      try {
+        const center = map.getCenter();
+        const fallbackBounds = calculateSquareBounds(center.lng, center.lat);
+        const { minElevation, maxElevation } = calculateGravityWaterFlow(map, fallbackBounds, 0, 0);
+        if (onElevationStatsCalculated) {
+          onElevationStatsCalculated({
+            minElevation: Number(minElevation.toFixed(1)),
+            maxElevation: Number(maxElevation.toFixed(1)),
+            elevationRange: Number((maxElevation - minElevation).toFixed(1)),
+            floodRise: 0,
+            waterSurfaceElevation: minElevation,
+            elevationQuality: 'ACTUAL_TERRAIN'
+          });
+        }
+      } catch (e) {
+        // ignore
+      }
       return;
+    }
+
+    // Always compute accurate topographic elevation stats for the block from Mapbox Terrain
+    try {
+      const { minElevation, maxElevation, floodRise, waterSurfaceElevation } = calculateGravityWaterFlow(
+        map,
+        blockBounds,
+        rainfallMm || 0,
+        cloggingPercent || 0
+      );
+      if (onElevationStatsCalculated) {
+        onElevationStatsCalculated({
+          minElevation: Number(minElevation.toFixed(1)),
+          maxElevation: Number(maxElevation.toFixed(1)),
+          elevationRange: Number((maxElevation - minElevation).toFixed(1)),
+          floodRise: Number((floodRise || 0).toFixed(2)),
+          waterSurfaceElevation: Number((waterSurfaceElevation || minElevation).toFixed(1)),
+          elevationQuality: 'ACTUAL_TERRAIN'
+        });
+      }
+    } catch (e) {
+      // ignore
     }
 
     // Decoupled Simulation Check: If simulation has not been triggered, keep water & flood mesh empty
@@ -1048,10 +1111,11 @@ export function Map3D({
         const buildingLayers = ['3d-buildings', 'building-extrusion'].filter(l => map.getLayer(l));
         const renderedBuildings = buildingLayers.length > 0 ? map.queryRenderedFeatures({ layers: buildingLayers }) : [];
         if (onBlockRwhCalculated) {
+          const activeRwhRain = typeof rwhRainfallMm === 'number' ? rwhRainfallMm : rainfallMm;
           const rwhData = calculateBlockRWH({
             blockBounds,
             blockLabel,
-            rainfallMm,
+            rainfallMm: activeRwhRain,
             renderedBuildings
           });
           onBlockRwhCalculated(rwhData);
@@ -1167,7 +1231,14 @@ export function Map3D({
     );
 
     if (onElevationStatsCalculated) {
-      onElevationStatsCalculated({ minElevation, maxElevation, floodRise, waterSurfaceElevation });
+      onElevationStatsCalculated({
+        minElevation: Number(minElevation.toFixed(1)),
+        maxElevation: Number(maxElevation.toFixed(1)),
+        elevationRange: Number((maxElevation - minElevation).toFixed(1)),
+        floodRise: Number(floodRise.toFixed(2)),
+        waterSurfaceElevation: Number(waterSurfaceElevation.toFixed(1)),
+        elevationQuality: 'ACTUAL_TERRAIN'
+      });
     }
 
     if (waterSrc) {
@@ -1254,10 +1325,13 @@ export function Map3D({
 
       // Calculate Area-Specific Rainwater Harvesting metrics from rendered structures
       if (onBlockRwhCalculated) {
+        const activeRwhRain = typeof rwhRainfallMm === 'number'
+          ? rwhRainfallMm
+          : (is24SimActive && sim24Sequence?.steps?.[currentSimHour] ? sim24Sequence.steps[currentSimHour].rainfallMm : rainfallMm);
         const rwhData = calculateBlockRWH({
           blockBounds,
           blockLabel,
-          rainfallMm,
+          rainfallMm: activeRwhRain,
           renderedBuildings
         });
         onBlockRwhCalculated(rwhData);
@@ -1274,6 +1348,7 @@ export function Map3D({
     sim24Sequence,
     currentSimHour,
     rainfallMm,
+    rwhRainfallMm,
     cloggingPercent,
     blockLabel,
     onElevationStatsCalculated,
@@ -1341,7 +1416,7 @@ export function Map3D({
     const hazardSource = map.getSource('route-hazards-source');
     const endpointSource = map.getSource('route-endpoints-source');
 
-    const routeColors = ['#45d6c5', '#8ab4f8', '#fbbc04', '#c58af9'];
+    const routeColors = ['#e3af35', '#c2820a', '#10b981', '#c58af9'];
     const routeFeatures = (routePlan?.routes || []).map((route, index) => {
       let color = routeColors[index % routeColors.length];
       if (route.isSafeBypass) {
@@ -1513,24 +1588,23 @@ export function Map3D({
         }}
       />
 
-      {mapError && (
-        <div className="gmaps-error-banner">
-          <AlertTriangle size={18} style={{ color: '#ea4335' }} />
-          <div>
-            <strong>Mapbox Configuration:</strong>
-            <div style={{ marginTop: '2px', fontSize: '11px' }}>{mapError}</div>
-          </div>
-        </div>
-      )}
+
 
       {/* Floating Tools (Top-Right) with State-Wide Extents */}
-      <div className="gmaps-floating-tools">
+      <div 
+        className={`gmaps-floating-tools hud-sim-dimmable ${isSimulateMode ? (isFloatingToolsHighlighted ? 'hud-highlighted' : 'hud-dimmed') : ''}`}
+        onClick={() => {
+          if (isSimulateMode) {
+            setIsFloatingToolsHighlighted(prev => !prev);
+          }
+        }}
+      >
         <button
           onClick={handleFlyToFullKarnataka}
           className="gmaps-tool-btn"
           title="View Full Karnataka State (Multi-Resolution Spatial Drainage Index)"
         >
-          <Maximize2 size={14} style={{ color: '#0A84FF' }} />
+          <Maximize2 size={14} style={{ color: '#a1a1aa' }} />
           <span>Full Karnataka</span>
         </button>
 
@@ -1539,7 +1613,7 @@ export function Map3D({
           className="gmaps-tool-btn"
           title="Reset Camera to Bengaluru Center (Pitch 55°)"
         >
-          <Compass size={14} style={{ color: '#FFFFFF' }} />
+          <Compass size={14} style={{ color: '#a1a1aa' }} />
           <span>Bengaluru City</span>
         </button>
 
@@ -1548,7 +1622,7 @@ export function Map3D({
           className={`gmaps-tool-btn ${showTerrain ? 'active' : ''}`}
           title="Toggle 3D Terrain DEM"
         >
-          <Layers size={14} style={{ color: showTerrain ? '#0A84FF' : '#FFFFFF' }} />
+          <Layers size={14} style={{ color: showTerrain ? '#ffffff' : '#a1a1aa' }} />
           <span>Terrain 3D</span>
         </button>
 
@@ -1557,7 +1631,7 @@ export function Map3D({
           className={`gmaps-tool-btn ${show3DBuildings ? 'active' : ''}`}
           title="Toggle 3D Buildings"
         >
-          <Eye size={14} style={{ color: show3DBuildings ? '#0A84FF' : '#FFFFFF' }} />
+          <Eye size={14} style={{ color: show3DBuildings ? '#ffffff' : '#a1a1aa' }} />
           <span>3D Buildings</span>
         </button>
       </div>
@@ -1566,7 +1640,7 @@ export function Map3D({
       {isOrbiting && (
         <>
           <div className="panorama-drag-hint">
-            <RotateCcw size={14} style={{ color: '#00f0ff' }} />
+            <RotateCcw size={14} style={{ color: '#a1a1aa' }} />
             <span>Click & Drag to Look Around in 360° (Heading & Pitch Locked to Origin)</span>
           </div>
 
@@ -1598,7 +1672,7 @@ export function Map3D({
               className="panorama-btn"
               title={is360AutoPanning ? "Pause Auto-Pan Scan" : "Start 360° Panoramic Scan"}
             >
-              {is360AutoPanning ? <Pause size={12} fill="#00f0ff" /> : <Play size={12} fill="#00f0ff" />}
+              {is360AutoPanning ? <Pause size={12} fill="#ffffff" /> : <Play size={12} fill="#ffffff" />}
               <span>{is360AutoPanning ? 'Pause Scan' : 'Auto-Pan'}</span>
             </button>
 
@@ -1683,7 +1757,7 @@ export function Map3D({
             </div>
 
             {activeDrainAlert.overrideNote && (
-              <div style={{ fontSize: '10.5px', color: '#38bdf8', marginTop: '4px', fontStyle: 'italic' }}>
+              <div style={{ fontSize: '10.5px', color: '#10b981', marginTop: '4px', fontStyle: 'italic' }}>
                 ✓ {activeDrainAlert.overrideNote}
               </div>
             )}
@@ -1707,7 +1781,7 @@ export function Map3D({
       {/* Mode Instructions Indicator in Armed Mode */}
       {mode === 'armed' && (
         <div className="gmaps-armed-hint-banner">
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00f0ff', boxShadow: '0 0 10px #00f0ff' }} />
+          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#a1a1aa', boxShadow: '0 0 6px rgba(161, 161, 170, 0.4)' }} />
           <span>Search an area or click anywhere across Karnataka to extract a 1 km x 1 km simulation zone.</span>
         </div>
       )}

@@ -258,9 +258,234 @@ export function generate24HourSimulationSequence({
   }
 
   return {
+    mode: 'SCENARIO',
+    isForecastMode: false,
     totalHours: 24,
     peakRainfallMm,
     cloggingPercent,
+    minElevation,
+    maxElevation,
+    steps: hourlySteps
+  };
+}
+
+/**
+ * Generates a hydrologic simulation sequence driven by live/hourly forecast data.
+ *
+ * @param {Object} options
+ * @param {Object} options.blockBounds - { minLng, minLat, maxLng, maxLat }
+ * @param {Array} options.hourlyForecast - Array of hourly forecast objects or numbers
+ * @param {number} [options.cloggingPercent] - Optional override or initial clogging %
+ * @param {Array} [options.terrainSamples] - 16x16 elevation samples inside block
+ * @param {number} [options.runoffCoeff] - Default 0.85
+ * @param {number} [options.drainCapacityMmHr] - Baseline capacity (default 30 mm/hr)
+ * @param {Object} [options.drainageAssessment] - Assessment from assessDrainageCondition()
+ */
+export function generateForecastSimulationSequence({
+  blockBounds,
+  hourlyForecast = [],
+  cloggingPercent = null,
+  terrainSamples = [],
+  runoffCoeff = 0.85,
+  drainCapacityMmHr = 30.0,
+  drainageAssessment = null
+}) {
+  if (!blockBounds) return null;
+
+  // Determine effective clogging: prioritize user explicit override, else drainage assessment, else default 50%
+  let effectiveClogPercent = 50;
+  if (cloggingPercent !== null && cloggingPercent !== undefined) {
+    effectiveClogPercent = cloggingPercent;
+  } else if (drainageAssessment?.cloggingPercentage !== undefined) {
+    effectiveClogPercent = drainageAssessment.cloggingPercentage;
+  }
+
+  const clogRate = Math.max(0, Math.min(100, effectiveClogPercent)) / 100;
+  const effectiveDrainCapacity = drainCapacityMmHr * Math.max(0.05, 1.0 - clogRate * 0.95);
+
+  const { minLng, minLat, maxLng, maxLat } = blockBounds;
+
+  // Elevation extents
+  let minElevation = 880;
+  let maxElevation = 895;
+  if (terrainSamples && terrainSamples.length > 0) {
+    const elevs = terrainSamples.map(s => s.elevation_m || 885);
+    minElevation = Math.min(...elevs);
+    maxElevation = Math.max(...elevs);
+  }
+  const elevRange = Math.max(3.0, maxElevation - minElevation);
+
+  // Grid steps (16x16)
+  const steps = 16;
+  const lngStep = (maxLng - minLng) / (steps - 1);
+  const latStep = (maxLat - minLat) / (steps - 1);
+  const halfDx = lngStep * 0.49;
+  const halfDy = latStep * 0.49;
+
+  // Prepare hourly timeline items (up to 24 items)
+  const timeline = Array.isArray(hourlyForecast) && hourlyForecast.length > 0
+    ? hourlyForecast.slice(0, 24)
+    : [];
+
+  const totalSteps = timeline.length > 0 ? timeline.length : 24;
+
+  const hourlySteps = [];
+  let accumulatedWaterMm = 0;
+  let peakRainfallObserved = 0;
+
+  for (let t = 0; t < totalSteps; t++) {
+    const forecastItem = timeline[t];
+    const currentRainMm = typeof forecastItem === 'number'
+      ? Math.max(0, Number(forecastItem.toFixed(1)))
+      : (forecastItem?.precipitation_mm !== undefined
+          ? Math.max(0, Number(forecastItem.precipitation_mm.toFixed(1)))
+          : 0.0);
+
+    if (currentRainMm > peakRainfallObserved) {
+      peakRainfallObserved = currentRainMm;
+    }
+
+    const timeLabel = forecastItem?.displayTime || forecastItem?.time || `T+${t}h`;
+
+    const qIn = currentRainMm * runoffCoeff;
+    const qOut = effectiveDrainCapacity;
+    const runoffBalance = qIn - qOut;
+
+    if (runoffBalance > 0) {
+      accumulatedWaterMm += runoffBalance;
+    } else {
+      const drainReduction = Math.abs(runoffBalance) * 1.25;
+      accumulatedWaterMm = Math.max(0, accumulatedWaterMm - drainReduction);
+    }
+
+    const peakDepthM = currentRainMm > 0 || accumulatedWaterMm > 0
+      ? Number(Math.min(2.4, accumulatedWaterMm * 0.015).toFixed(2))
+      : 0.0;
+
+    const reachThreshold = peakDepthM > 0.02
+      ? Math.min(0.90, 0.22 + (peakDepthM / 2.2) * 0.38 + clogRate * 0.28)
+      : 0;
+
+    const cellFeatures = [];
+    let floodedCellCount = 0;
+    const totalCells = steps * steps;
+
+    for (let r = 0; r < steps; r++) {
+      for (let c = 0; c < steps; c++) {
+        const cLng = minLng + c * lngStep;
+        const cLat = minLat + r * latStep;
+
+        let cellElev = minElevation + (r / steps) * (elevRange * 0.7);
+        if (terrainSamples && terrainSamples.length === totalCells) {
+          const sample = terrainSamples[r * steps + c];
+          if (sample?.elevation_m) cellElev = sample.elevation_m;
+        }
+
+        const relElev = Math.max(0, Math.min(1, (cellElev - minElevation) / elevRange));
+        let cellDepth = 0;
+
+        if (reachThreshold > 0 && relElev <= reachThreshold) {
+          const depressionFactor = Math.max(0, 1.0 - (relElev / reachThreshold));
+          cellDepth = Number((peakDepthM * (0.2 + 0.8 * Math.pow(depressionFactor, 1.2))).toFixed(2));
+        }
+
+        if (cellDepth >= 0.05) {
+          floodedCellCount++;
+          const cellColor = getDepthColor(cellDepth);
+
+          cellFeatures.push({
+            type: "Feature",
+            id: `sim_cell_fc_${t}_${r}_${c}`,
+            properties: {
+              id: `sim_cell_${r}_${c}`,
+              hour: t,
+              depth_m: cellDepth,
+              color: cellColor,
+              water_opacity: Math.min(0.85, 0.55 + cellDepth * 0.18)
+            },
+            geometry: {
+              type: "Polygon",
+              coordinates: [[
+                [Number((cLng - halfDx).toFixed(6)), Number((cLat - halfDy).toFixed(6))],
+                [Number((cLng + halfDx).toFixed(6)), Number((cLat - halfDy).toFixed(6))],
+                [Number((cLng + halfDx).toFixed(6)), Number((cLat + halfDy).toFixed(6))],
+                [Number((cLng - halfDx).toFixed(6)), Number((cLat + halfDy).toFixed(6))],
+                [Number((cLng - halfDx).toFixed(6)), Number((cLat - halfDy).toFixed(6))]
+              ]]
+            }
+          });
+        }
+      }
+    }
+
+    if (peakDepthM > 0.05) {
+      const spanX = maxLng - minLng;
+      const spanY = maxLat - minLat;
+      const flowVectors = [
+        [
+          [minLng + 0.15 * spanX, maxLat - 0.20 * spanY],
+          [minLng + 0.40 * spanX, maxLat - 0.45 * spanY],
+          [minLng + 0.65 * spanX, minLat + 0.35 * spanY],
+          [maxLng - 0.15 * spanX, minLat + 0.20 * spanY]
+        ],
+        [
+          [minLng + 0.25 * spanX, maxLat - 0.15 * spanY],
+          [minLng + 0.50 * spanX, maxLat - 0.38 * spanY],
+          [minLng + 0.72 * spanX, minLat + 0.40 * spanY]
+        ]
+      ];
+
+      flowVectors.forEach((coords, vIdx) => {
+        cellFeatures.push({
+          type: "Feature",
+          id: `sim_flow_fc_${t}_${vIdx}`,
+          properties: {
+            id: `sim_flow_${vIdx}`,
+            depth_m: peakDepthM
+          },
+          geometry: {
+            type: "LineString",
+            coordinates: coords.map(([lng, lat]) => [
+              Number(lng.toFixed(6)),
+              Number(lat.toFixed(6))
+            ])
+          }
+        });
+      });
+    }
+
+    const floodFraction = Number((floodedCellCount / totalCells).toFixed(2));
+    const totalVolumeM3 = Math.round(peakDepthM * floodFraction * 1_000_000);
+    const affectedBuildings = Math.round(floodFraction * 48);
+
+    hourlySteps.push({
+      hour: t,
+      label: timeLabel,
+      displayTime: timeLabel,
+      rainfallMm: currentRainMm,
+      accumulatedWaterMm: Math.round(accumulatedWaterMm),
+      qInMmHr: Number(qIn.toFixed(1)),
+      qOutMmHr: Number(qOut.toFixed(1)),
+      netRunoffBalanceMmHr: Number(runoffBalance.toFixed(1)),
+      peakWaterDepthM: peakDepthM,
+      depthColor: getDepthColor(peakDepthM),
+      floodFraction,
+      totalVolumeM3,
+      affectedBuildings,
+      waterGeoJSON: {
+        type: "FeatureCollection",
+        features: cellFeatures
+      }
+    });
+  }
+
+  return {
+    mode: 'FORECAST',
+    isForecastMode: true,
+    totalHours: hourlySteps.length > 0 ? hourlySteps.length - 1 : 24,
+    peakRainfallMm: peakRainfallObserved,
+    cloggingPercent: effectiveClogPercent,
+    drainageAssessment,
     minElevation,
     maxElevation,
     steps: hourlySteps

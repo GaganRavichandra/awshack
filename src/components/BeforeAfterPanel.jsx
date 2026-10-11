@@ -43,14 +43,15 @@ export function BeforeAfterPanel({ simulationData, activeIntervention }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       <div className="panel-section-title">
-        <BarChart3 size={13} style={{ color: '#00f0ff' }} />
+        <BarChart3 size={13} style={{ color: '#a1a1aa' }} />
         <span>Hydrologic Decision Support: Before vs After</span>
       </div>
 
       {/* Hero: Primary Flood Reduction % */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(0, 240, 255, 0.08) 100%)',
-        border: '1px solid rgba(16, 185, 129, 0.4)',
+        background: 'rgba(255, 255, 255, 0.03)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '8px',
         padding: '12px 14px',
         display: 'flex',
         alignItems: 'center',
@@ -159,8 +160,9 @@ export function BeforeAfterPanel({ simulationData, activeIntervention }) {
       {/* Hydraulic Benefit Highlights */}
       {current.flood_reduction_percentage > 0 && (
         <div style={{
-          background: 'rgba(0, 240, 255, 0.05)',
-          border: '1px solid #1e3a5f',
+          background: 'rgba(255, 255, 255, 0.03)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: '8px',
           padding: '8px 10px',
           fontSize: '10px',
           color: '#cbd5e1',
@@ -168,13 +170,13 @@ export function BeforeAfterPanel({ simulationData, activeIntervention }) {
           flexDirection: 'column',
           gap: '4px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#00f0ff', fontWeight: 700 }}>
-            <Droplet size={12} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#fafafa', fontWeight: 700 }}>
+            <Droplet size={12} style={{ color: '#a1a1aa' }} />
             <span>Mitigation Gains Delivered:</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span>Urban Area Protected:</span>
-            <strong className="font-mono" style={{ color: '#38bdf8' }}>+{areaAvertedSqKm} km²</strong>
+            <strong className="font-mono" style={{ color: '#fafafa' }}>+{areaAvertedSqKm} km²</strong>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span>Arterial Corridors Restored:</span>

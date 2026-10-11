@@ -78,24 +78,22 @@ export async function checkBhuvanServiceStatus() {
       return bhuvanHealthCache;
     }
 
-    // If endpoint responds but layer had an OGC service notice, it is still operational
     bhuvanHealthCache = {
-      status: 'AVAILABLE',
+      status: 'UNAVAILABLE',
       provider: 'ISRO Bhuvan (NRSC)',
       endpoint: BHUVAN_WMS_BASE_URL,
       timestamp: new Date().toISOString(),
-      message: 'Bhuvan OGC WMS reachable via local proxy'
+      message: `Bhuvan endpoint returned HTTP ${res.status}`
     };
     bhuvanHealthTimestamp = now;
     return bhuvanHealthCache;
-  } catch {
-    // If local fetch fails, provide clear informative status
+  } catch (err) {
     bhuvanHealthCache = {
-      status: 'AVAILABLE',
+      status: 'UNAVAILABLE',
       provider: 'ISRO Bhuvan (NRSC)',
       endpoint: BHUVAN_WMS_BASE_URL,
       timestamp: new Date().toISOString(),
-      message: 'Bhuvan WMS configured (ISRO/NRSC OGC)'
+      message: err.name === 'AbortError' ? 'Bhuvan WMS request timed out (7s)' : `Bhuvan WMS unreachable: ${err.message}`
     };
     bhuvanHealthTimestamp = now;
     return bhuvanHealthCache;

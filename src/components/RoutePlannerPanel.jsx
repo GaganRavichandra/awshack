@@ -114,7 +114,8 @@ export function RoutePlannerPanel({
   onRoutesChange,
   isOpen = true,
   onClose,
-  locationiqToken
+  locationiqToken,
+  isSimulateMode = false
 }) {
   const [origin, setOrigin] = useState({ label: '', coords: null });
   const [destination, setDestination] = useState({ label: '', coords: null });
@@ -123,6 +124,7 @@ export function RoutePlannerPanel({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [rerouteNotice, setRerouteNotice] = useState('');
+  const [isPanelHighlighted, setIsPanelHighlighted] = useState(false);
   const routeRequestIdRef = useRef(0);
 
   // --------------------------------------------------------------------------
@@ -380,7 +382,15 @@ export function RoutePlannerPanel({
   if (!isOpen) return null;
 
   return (
-    <section className="route-planner-panel" aria-label="Alternative route planner">
+    <section 
+      className={`route-planner-panel hud-sim-dimmable ${isSimulateMode ? (isPanelHighlighted ? 'hud-highlighted' : 'hud-dimmed') : ''}`}
+      onClick={() => {
+        if (isSimulateMode) {
+          setIsPanelHighlighted(prev => !prev);
+        }
+      }}
+      aria-label="Alternative route planner"
+    >
       {/* 1. Header with Title & Explicit 'X' Close Button */}
       <header className="route-panel-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -455,7 +465,7 @@ export function RoutePlannerPanel({
       <div className="route-sim-controls-card">
         <div className="route-sim-controls-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Activity size={13} className="text-cyan-400" />
+            <Activity size={13} style={{ color: '#a1a1aa' }} />
             <span className="route-sim-title">CORRIDOR SIMULATION & STRESS TEST</span>
           </div>
           <span className={`route-sim-badge ${corridorDataSource === 'preset' ? 'is-preset' : 'is-realworld'}`}>
@@ -637,7 +647,7 @@ export function RoutePlannerPanel({
                       ? '#45d6c5'
                       : isBlocked
                       ? '#ea4335'
-                      : ['#45d6c5', '#8ab4f8', '#fbbc04', '#c58af9'][index % 4]
+                      : ['#e3af35', '#f59e0b', '#fbbf24', '#c2820a'][index % 4]
                   }}
                 />
                 <span className="route-option-main">

@@ -80,3 +80,15 @@ export async function fetchPointRain(lat, lng) {
     };
   }
 }
+
+/**
+ * Fetches live precipitation for a specific coordinate (or Bengaluru default)
+ */
+export async function fetchLiveBengaluruRain(lat = 12.9716, lng = 77.5946) {
+  const point = await fetchPointRain(lat, lng);
+  return {
+    rawCurrentPrecipitationMm: point.rain_mm_hr,
+    scenarioRainfallMm: point.rain_mm_hr,
+    timestamp: point.timestamp
+  };
+}

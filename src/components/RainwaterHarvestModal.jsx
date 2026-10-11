@@ -9,7 +9,9 @@ export function RainwaterHarvestModal({
   blockLabel = ''
 }) {
   const initialRoofArea = rwhStats?.terraceAreaM2 || 250000;
-  const initialRain = Math.min(150, Math.max(5, rwhStats?.rainfallMm || rainfallMm || 45));
+  const initialRain = typeof rwhStats?.rainfallMm === 'number'
+    ? rwhStats.rainfallMm
+    : (typeof rainfallMm === 'number' ? rainfallMm : 0);
 
   const [customRoofArea, setCustomRoofArea] = useState(initialRoofArea);
   const [customRainMm, setCustomRainMm] = useState(initialRain);
@@ -20,7 +22,7 @@ export function RainwaterHarvestModal({
     if (rwhStats?.terraceAreaM2) {
       setCustomRoofArea(rwhStats.terraceAreaM2);
     }
-    if (rwhStats?.rainfallMm) {
+    if (typeof rwhStats?.rainfallMm === 'number') {
       setCustomRainMm(rwhStats.rainfallMm);
     }
   }, [rwhStats]);
@@ -37,12 +39,15 @@ export function RainwaterHarvestModal({
   const eta = 0.90; // Standard Hydrology Specification: Filter Efficiency ~0.90
 
   const activeRoofArea = useBlockDynamic && rwhStats?.terraceAreaM2 ? rwhStats.terraceAreaM2 : customRoofArea;
-  const activeRain = useBlockDynamic && rwhStats?.rainfallMm ? rwhStats.rainfallMm : customRainMm;
+  const activeRain = useBlockDynamic && typeof rwhStats?.rainfallMm === 'number' ? rwhStats.rainfallMm : customRainMm;
+  const isPaused = activeRain > 50;
 
-  // Standard Hydrology Formula:
-  // Harvestable_Volume (Liters) = Rainfall (mm) * Terrace_Area (m²) * Runoff_Coefficient * Filter_Efficiency
-  // (1 mm rain on 1 m² = 1.0 Liter)
-  const harvestedLiters = Math.round(activeRain * activeRoofArea * C * eta);
+  // Standard Hydrology Formula strictly based on live rain:
+  // - If rain == 0 mm: 0 kL / 0 L
+  // - If rain > 50 mm: Paused (>50mm bypass)
+  const harvestedLiters = (!isPaused && activeRain > 0)
+    ? Math.round(activeRain * activeRoofArea * C * eta)
+    : 0;
   const harvestedKL = Number((harvestedLiters / 1_000).toFixed(1)); // 1 kL = 1 m³
   const harvestedM3 = harvestedKL;
 
@@ -50,7 +55,7 @@ export function RainwaterHarvestModal({
   // Non-potable domestic requirement (toilet flushing + landscape maintenance) ~ 45 LPCD
   const estimatedOccupants = rwhStats?.estimatedOccupants || Math.max(100, Math.round(activeRoofArea / 16));
   const dailyNonPotableDemandL = Math.max(4_500, estimatedOccupants * 45);
-  const daysSustained = harvestedLiters > 0 ? Math.round(harvestedLiters / dailyNonPotableDemandL) : 0;
+  const daysSustained = (!isPaused && harvestedLiters > 0) ? Math.round(harvestedLiters / dailyNonPotableDemandL) : 0;
 
   // Recommended tank / sump capacity (~65% storm buffer)
   const recommendedTankLiters = Math.round(harvestedLiters * 0.65);
@@ -73,10 +78,10 @@ export function RainwaterHarvestModal({
         style={{
           width: '100%',
           maxWidth: '580px',
-          background: 'rgba(19, 24, 34, 0.96)',
+          background: '#101013',
           borderRadius: '16px',
-          border: '1px solid rgba(0, 240, 255, 0.25)',
-          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.65), 0 0 25px rgba(0, 240, 255, 0.15)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.85)',
           overflow: 'hidden'
         }}
       >
@@ -87,18 +92,18 @@ export function RainwaterHarvestModal({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          background: 'linear-gradient(90deg, rgba(0, 240, 255, 0.08), transparent)'
+          background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.04), transparent)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
               width: '32px',
               height: '32px',
               borderRadius: '8px',
-              background: 'rgba(0, 240, 255, 0.15)',
+              background: 'rgba(255, 255, 255, 0.06)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#00f0ff'
+              color: '#ffffff'
             }}>
               <Droplets size={18} />
             </div>
@@ -129,20 +134,43 @@ export function RainwaterHarvestModal({
         {/* Content */}
         <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
           
+          {/* Deluge / Surge Bypass Alert if rain > 50 mm */}
+          {isPaused && (
+            <div style={{
+              padding: '10px 14px',
+              borderRadius: '8px',
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              color: '#f87171',
+              fontSize: '11.5px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <ShieldAlert size={16} style={{ flexShrink: 0 }} />
+              <div>
+                <strong>RWH Inflow Paused ({activeRain} mm &gt; 50 mm threshold):</strong>
+                <div style={{ marginTop: '2px', fontSize: '11px', color: '#fca5a5' }}>
+                  Emergency stormwater bypass active. Cistern diversion suspended to prevent structural hydraulic overload and foundation flooding.
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Block Geometry & Source Badge */}
           {rwhStats && (
             <div style={{
               padding: '8px 12px',
               borderRadius: '8px',
-              background: 'rgba(0, 240, 255, 0.06)',
-              border: '1px solid rgba(0, 240, 255, 0.18)',
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               fontSize: '11px'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1' }}>
-                <Building size={14} style={{ color: '#00f0ff' }} />
+                <Building size={14} style={{ color: '#a1a1aa' }} />
                 <span>
                   <strong>Block:</strong> 1.0 km² (1,000,000 m²) • <strong>Zoning:</strong> {rwhStats.zoningCategory}
                 </span>
@@ -150,8 +178,8 @@ export function RainwaterHarvestModal({
               <span style={{
                 fontSize: '10px',
                 fontWeight: 700,
-                color: '#00f0ff',
-                background: 'rgba(0, 240, 255, 0.12)',
+                color: '#a1a1aa',
+                background: 'rgba(255, 255, 255, 0.06)',
                 padding: '2px 6px',
                 borderRadius: '4px'
               }}>
@@ -167,14 +195,14 @@ export function RainwaterHarvestModal({
             gap: '12px',
             padding: '16px',
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, rgba(0, 119, 182, 0.22) 0%, rgba(0, 240, 255, 0.12) 100%)',
-            border: '1px solid rgba(0, 240, 255, 0.28)'
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid rgba(255, 255, 255, 0.08)'
           }}>
             <div>
               <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', fontWeight: 600 }}>
                 Total Collectable Rainwater
               </div>
-              <div style={{ fontSize: '32px', fontWeight: 800, color: '#00f0ff', marginTop: '2px', lineHeight: 1.1 }}>
+              <div style={{ fontSize: '32px', fontWeight: 800, color: '#ffffff', marginTop: '2px', lineHeight: 1.1 }}>
                 {harvestedKL.toLocaleString()} <span style={{ fontSize: '16px', fontWeight: 600 }}>kL (m³)</span>
               </div>
               <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: '4px' }}>
@@ -211,9 +239,9 @@ export function RainwaterHarvestModal({
                 style={{
                   padding: '3px 8px',
                   borderRadius: '6px',
-                  border: '1px solid rgba(0, 240, 255, 0.3)',
-                  background: useBlockDynamic ? 'rgba(0, 240, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                  color: useBlockDynamic ? '#00f0ff' : '#94a3b8',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  background: useBlockDynamic ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.04)',
+                  color: useBlockDynamic ? '#ffffff' : '#94a3b8',
                   fontSize: '10.5px',
                   fontWeight: 600,
                   cursor: 'pointer'
@@ -229,7 +257,7 @@ export function RainwaterHarvestModal({
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
                 <span>Rooftop Coverage (A)</span>
-                <span style={{ color: '#00f0ff' }}>{activeRoofArea.toLocaleString()} m²</span>
+                <span style={{ color: '#fafafa' }}>{activeRoofArea.toLocaleString()} m²</span>
               </div>
               <input
                 type="range"
@@ -242,7 +270,7 @@ export function RainwaterHarvestModal({
                   setUseBlockDynamic(false);
                   setCustomRoofArea(Number(e.target.value));
                 }}
-                style={{ width: '100%', accentColor: '#00f0ff', cursor: useBlockDynamic ? 'not-allowed' : 'pointer' }}
+                style={{ width: '100%', accentColor: '#a1a1aa', cursor: useBlockDynamic ? 'not-allowed' : 'pointer' }}
               />
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9.5px', color: '#64748b', marginTop: '2px' }}>
                 <span>Suburban (15%)</span>
@@ -254,7 +282,7 @@ export function RainwaterHarvestModal({
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
                 <span>Precipitation Event (P)</span>
-                <span style={{ color: '#00f0ff' }}>{activeRain} mm</span>
+                <span style={{ color: '#fafafa' }}>{activeRain} mm</span>
               </div>
               <input
                 type="range"
@@ -267,7 +295,7 @@ export function RainwaterHarvestModal({
                   setUseBlockDynamic(false);
                   setCustomRainMm(Number(e.target.value));
                 }}
-                style={{ width: '100%', accentColor: '#00f0ff', cursor: useBlockDynamic ? 'not-allowed' : 'pointer' }}
+                style={{ width: '100%', accentColor: '#a1a1aa', cursor: useBlockDynamic ? 'not-allowed' : 'pointer' }}
               />
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9.5px', color: '#64748b', marginTop: '2px' }}>
                 <span>25 mm (Shower)</span>
@@ -294,14 +322,14 @@ export function RainwaterHarvestModal({
                   style={{
                     padding: '8px 10px',
                     borderRadius: '8px',
-                    border: `1px solid ${roofType === r.id ? '#00f0ff' : 'rgba(255, 255, 255, 0.08)'}`,
-                    background: roofType === r.id ? 'rgba(0, 240, 255, 0.12)' : 'rgba(15, 23, 42, 0.5)',
+                    border: `1px solid ${roofType === r.id ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.08)'}`,
+                    background: roofType === r.id ? 'rgba(255, 255, 255, 0.1)' : 'rgba(23, 23, 27, 0.7)',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease'
                   }}
                 >
                   <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#f8fafc' }}>{r.name}</div>
-                  <div style={{ fontSize: '10px', color: '#00f0ff', marginTop: '2px' }}>{r.c} • η = 90%</div>
+                  <div style={{ fontSize: '10px', color: '#a1a1aa', marginTop: '2px' }}>{r.c} • η = 90%</div>
                 </div>
               ))}
             </div>
@@ -321,7 +349,7 @@ export function RainwaterHarvestModal({
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontWeight: 600, color: '#e2e8f0' }}>Standard Hydrology Formula:</span>
-              <span style={{ color: '#00f0ff', fontWeight: 700 }}>Filter Efficiency: 90%</span>
+              <span style={{ color: '#fafafa', fontWeight: 700 }}>Filter Efficiency: 90%</span>
             </div>
             <code>Harvestable_Volume (L) = P ({activeRain} mm) × A ({activeRoofArea.toLocaleString()} m²) × C ({C}) × η (0.90)</code>
           </div>

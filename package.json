@@ -4,6 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "start": "python lambda/local_runner.py",
+    "server": "python lambda/local_runner.py",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",

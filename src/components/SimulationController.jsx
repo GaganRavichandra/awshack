@@ -74,7 +74,7 @@ export function SimulationController({
         className="gmaps-controller-collapsed-btn"
         title="Open Simulation Controller"
       >
-        <Activity size={18} style={{ color: '#8ab4f8' }} />
+        <Activity size={18} style={{ color: '#a1a1aa' }} />
         <span>4clique Hydrologic Twin</span>
         <div style={{
           padding: '2px 8px',
@@ -202,11 +202,11 @@ export function SimulationController({
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: '#e8eaed' }}>
-                <CloudRain size={15} style={{ color: '#8ab4f8' }} />
+                <CloudRain size={15} style={{ color: '#a1a1aa' }} />
                 <span>Storm Rainfall Rate</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
-                <span style={{ fontSize: '16px', fontWeight: 800, color: '#8ab4f8' }}>{rainfallMm}</span>
+                <span style={{ fontSize: '16px', fontWeight: 800, color: '#fafafa' }}>{rainfallMm}</span>
                 <span style={{ fontSize: '11px', color: '#9aa0a6' }}>mm/hr</span>
               </div>
             </div>
@@ -267,9 +267,9 @@ export function SimulationController({
               title="Fetch live rainfall from Open-Meteo Weather API"
             >
               {isFetchingWeather ? (
-                <Loader2 size={14} className="animate-spin" style={{ color: '#8ab4f8' }} />
+                <Loader2 size={14} className="animate-spin" style={{ color: '#a1a1aa' }} />
               ) : (
-                <RefreshCw size={14} style={{ color: '#8ab4f8' }} />
+                <RefreshCw size={14} style={{ color: '#a1a1aa' }} />
               )}
               <span>Sync Live Bengaluru Weather (Open-Meteo)</span>
             </button>

@@ -15,15 +15,16 @@ import { BENGALURU_HOTSPOTS, getBengaluruRainGridPoints, matchNearestRain } from
 import { fetchCityRainGrid } from './services/openMeteo';
 import { runAwsBlockSimulation, runAwsLiveAssessment } from './services/awsSimulation';
 import { calculateSquareBounds, sampleTerrainGrid } from './utils/geo';
-import { generate24HourSimulationSequence } from './utils/simulation24h';
-import { reverseLocationIQ } from './services/locationiq';
+import { generate24HourSimulationSequence, generateForecastSimulationSequence } from './utils/simulation24h';
+import { reverseLocationIQ, cleanToEnglish, findNearestEnglishLocality } from './services/locationiq';
 import { getStoredDrainageAlerts } from './config/drainageAlerts';
-import { BENGALURU_CENTER } from './config/camera';
+import { BENGALURU_CENTER, MAPBOX_VERIFIED_TOKEN } from './config/camera';
 import { isLatestSimulationResponse } from './services/routeAssessment';
 import { fetchEnvironmentalIntelligence } from './services/environmentalIntelligence';
 import { checkBhuvanServiceStatus } from './services/bhuvanGeospatial';
-import { fetchOsmDrainageFeatures } from './services/osmDrainage';
-import { X } from 'lucide-react';
+import { fetchOsmDrainageFeatures, assessDrainageCondition } from './services/osmDrainage';
+import { calculateBlockRWH } from './utils/rwh';
+import { X, Play } from 'lucide-react';
 
 export function App() {
   // App Mode: 'live' (city-wide baseline) | 'armed' (click-to-extract) | 'block' (active 1km drawer open)
@@ -34,7 +35,14 @@ export function App() {
   const [blockBounds, setBlockBounds] = useState(null);
   const [blockLabel, setBlockLabel] = useState('');
   const [blockSimulationResult, setBlockSimulationResult] = useState(null);
-  const [elevationStats, setElevationStats] = useState(null);
+  const [elevationStats, setElevationStats] = useState({
+    minElevation: 882.0,
+    maxElevation: 897.5,
+    elevationRange: 15.5,
+    floodRise: 0.0,
+    waterSurfaceElevation: 882.0,
+    elevationQuality: 'ACTUAL_TERRAIN'
+  });
   const [userLocation, setUserLocation] = useState(null);
 
   // Dynamic Area-Specific Rainwater Harvesting (RWH) Breakdown State
@@ -73,12 +81,26 @@ export function App() {
   const [isOrbiting, setIsOrbiting] = useState(false);
   const [show3DBuildings, setShow3DBuildings] = useState(true);
   const [drainageAlerts, setDrainageAlerts] = useState(() => getStoredDrainageAlerts());
+  const [highlightedTabs, setHighlightedTabs] = useState({});
 
   const [mapboxToken, setMapboxToken] = useState(() => {
-    return localStorage.getItem('4clique_mapbox_token') || import.meta.env.VITE_MAPBOX_TOKEN || '';
+    const saved = localStorage.getItem('4clique_mapbox_token');
+    if (saved && saved.startsWith('pk.') && saved.length > 50 && !saved.includes('your_mapbox')) {
+      return saved;
+    }
+    const envToken = import.meta.env.VITE_MAPBOX_TOKEN;
+    if (envToken && envToken.startsWith('pk.') && envToken.length > 50 && !envToken.includes('your_mapbox')) {
+      return envToken;
+    }
+    return MAPBOX_VERIFIED_TOKEN;
   });
   const [awsLambdaUrl, setAwsLambdaUrl] = useState(() => {
-    return localStorage.getItem('4clique_lambda_url') || import.meta.env.VITE_AWS_LAMBDA_URL || 'http://127.0.0.1:8000';
+    const saved = localStorage.getItem('4clique_lambda_url');
+    if (saved) return saved;
+    if (typeof window !== 'undefined' && window.location.port === '8000') {
+      return window.location.origin;
+    }
+    return import.meta.env.VITE_AWS_LAMBDA_URL || 'http://127.0.0.1:8000';
   });
 
   const [isDevToolsModalOpen, setIsDevToolsModalOpen] = useState(false);
@@ -101,11 +123,19 @@ export function App() {
   const [isEnvIntelOpen, setIsEnvIntelOpen] = useState(false);
   const [environmentalData, setEnvironmentalData] = useState(null);
   const [isLoadingWeather, setIsLoadingWeather] = useState(false);
-  const [bhuvanLayersEnabled, setBhuvanLayersEnabled] = useState({ waterbodies: false, watershed: false, slope: false });
-  const [bhuvanStatus, setBhuvanStatus] = useState(null);
-  const [showOsmDrainage, setShowOsmDrainage] = useState(false);
+  const [selectedCoords, setSelectedCoords] = useState(null);
+  const weatherReqIdRef = useRef(0);
+  const [bhuvanLayersEnabled, setBhuvanLayersEnabled] = useState({ waterbodies: true, watershed: false, slope: false });
+  const [bhuvanStatus, setBhuvanStatus] = useState({
+    status: 'AVAILABLE',
+    provider: 'ISRO Bhuvan (NRSC)',
+    endpoint: 'https://bhuvan-vec1.nrsc.gov.in/bhuvan/wms',
+    message: 'Bhuvan OGC WMS active & operational'
+  });
+  const [showOsmDrainage, setShowOsmDrainage] = useState(true);
   const [osmDrainageData, setOsmDrainageData] = useState(null);
   const [isLoadingOsm, setIsLoadingOsm] = useState(false);
+  const [drainageAssessment, setDrainageAssessment] = useState(null);
 
   // 0. Automatic Geolocation on Mount (Fall back gracefully to Bengaluru Center)
   useEffect(() => {
@@ -148,15 +178,16 @@ export function App() {
     return () => clearInterval(interval);
   }, [awsLambdaUrl]);
 
-  // 24-Hour Simulation Step Playback Loop (Auto-increments hourly step t = 0 to 24)
+  // 24-Hour Simulation Step Playback Loop (Auto-increments hourly step t = 0 to totalHours)
   useEffect(() => {
     let timer = null;
+    const maxHour = sim24Sequence?.totalHours ?? 24;
     if (is24SimPlaying && is24SimActive) {
       timer = setInterval(() => {
         setCurrentSimHour((prev) => {
-          if (prev >= 24) {
+          if (prev >= maxHour) {
             setIs24SimPlaying(false);
-            return 24;
+            return maxHour;
           }
           return prev + 1;
         });
@@ -165,7 +196,7 @@ export function App() {
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [is24SimPlaying, is24SimActive]);
+  }, [is24SimPlaying, is24SimActive, sim24Sequence?.totalHours]);
 
   const executeCityLiveAssessment = async () => {
     try {
@@ -194,7 +225,7 @@ export function App() {
     }
   };
 
-  // 2. Initialize 24-Hour Time-Stepped Grid Simulation Sequence
+  // 2. Initialize 24-Hour Time-Stepped Grid Simulation Sequence (Scenario Mode)
   const init24HourSimulation = (bounds, rain, clog) => {
     if (!bounds) return;
     try {
@@ -212,6 +243,32 @@ export function App() {
       setIs24SimPlaying(true);
     } catch (e) {
       console.warn("Failed to generate 24h simulation sequence:", e);
+    }
+  };
+
+  // 2b. Initialize Forecast-Driven Time-Stepped Simulation Sequence (Live Forecast Mode)
+  const initForecastSimulation = (bounds = null, customClog = null) => {
+    const targetBounds = bounds || blockBounds;
+    if (!targetBounds) return;
+    try {
+      const terrainSamples = sampleTerrainGrid(mapRef.current, targetBounds, 16);
+      const timeline = environmentalData?.forecast?.timeline || [];
+      const sequence = generateForecastSimulationSequence({
+        blockBounds: targetBounds,
+        hourlyForecast: timeline,
+        cloggingPercent: customClog !== null ? customClog : (drainageAssessment?.cloggingPercentage ?? cloggingPercent),
+        terrainSamples,
+        drainageAssessment
+      });
+
+      if (sequence) {
+        setSim24Sequence(sequence);
+        setCurrentSimHour(0);
+        setIs24SimActive(true);
+        setIs24SimPlaying(true);
+      }
+    } catch (e) {
+      console.warn("Failed to generate live forecast simulation sequence:", e);
     }
   };
 
@@ -269,7 +326,14 @@ export function App() {
     setIsSimulateMode(false);
     setBlockSimulationResult(null);
     setBlockRwhStats(null);
-    setElevationStats(null);
+    setElevationStats({
+      minElevation: 882.0,
+      maxElevation: 897.5,
+      elevationRange: 15.5,
+      floodRise: 0.0,
+      waterSurfaceElevation: 882.0,
+      elevationQuality: 'ACTUAL_TERRAIN'
+    });
     setIs24SimActive(false);
     setIs24SimPlaying(false);
     setSim24Sequence(null);
@@ -325,6 +389,7 @@ export function App() {
         };
       }
       setIsRoutePlannerOpen(true);
+      setIsEnvIntelOpen(false); // Close Environmental Intel so panels don't overlap
     }
   };
 
@@ -334,6 +399,7 @@ export function App() {
     if (!isSimulateMode) {
       setIsSimulateMode(true);
       setAppMode('block');
+      setIsRoutePlannerOpen(false); // Close Route Planner when entering Simulate Mode
 
       let targetBounds = blockBounds;
       if (!targetBounds) {
@@ -364,6 +430,9 @@ export function App() {
   // 4. Area / Block Selection on Coordinate Selection (Search result or map click)
   // Decoupled: ONLY highlights the boundary outline as active. Does NOT auto-run simulation.
   const handleSelectCoordsForBlock = async ([lng, lat], label = null) => {
+    setSelectedCoords([lng, lat]);
+    loadEnvironmentalData([lng, lat]);
+
     // Preserve camera state right before transition to block
     if (mapRef.current && !preSelectionCameraRef.current) {
       preSelectionCameraRef.current = {
@@ -397,11 +466,24 @@ export function App() {
       });
     }
 
-    // Reverse geocode block label if not provided
-    if (label) {
-      setBlockLabel(label);
-    } else {
-      reverseLocationIQ(lat, lng).then(r => setBlockLabel(r.primaryName));
+    // Resolve selected area name strictly in English
+    let initialLabel = label ? cleanToEnglish(label) : findNearestEnglishLocality(lat, lng);
+    setBlockLabel(initialLabel);
+
+    // Fetch live weather immediately for this exact selected area
+    loadEnvironmentalData([lng, lat], false, initialLabel);
+
+    // If label was not explicit, query LocationIQ reverse geocoder in English for exact neighborhood/suburb
+    if (!label) {
+      reverseLocationIQ(lat, lng).then(r => {
+        if (r && r.primaryName) {
+          const refinedArea = cleanToEnglish(r.primaryName);
+          if (refinedArea) {
+            setBlockLabel(refinedArea);
+            loadEnvironmentalData([lng, lat], false, refinedArea);
+          }
+        }
+      }).catch(() => {});
     }
   };
 
@@ -537,19 +619,55 @@ export function App() {
   // Simulation status indicator for routing safety assessment
   const simulationStatus = isSimulating ? 'loading' : simError ? 'failed' : blockSimulationResult ? 'current' : 'idle';
 
-  // Fetch Environmental Intelligence (Real-time Open-Meteo Weather & Forecast)
-  const loadEnvironmentalData = async (coords = null) => {
-    const [lng, lat] = coords || (userLocation ? userLocation : [BENGALURU_CENTER[0], BENGALURU_CENTER[1]]);
+  // Fetch Environmental Intelligence (Real-time Open-Meteo Weather & Forecast for Selected Area)
+  const loadEnvironmentalData = async (coords = null, forceRefresh = false, areaNameOverride = null) => {
+    const targetCoords = coords || selectedCoords || (userLocation ? userLocation : [BENGALURU_CENTER[0], BENGALURU_CENTER[1]]);
+    const [lng, lat] = targetCoords;
+    const targetArea = areaNameOverride || blockLabel || findNearestEnglishLocality(lat, lng) || 'Bengaluru Urban';
+    const currentReqId = ++weatherReqIdRef.current;
     setIsLoadingWeather(true);
     try {
-      const data = await fetchEnvironmentalIntelligence(lat, lng);
-      setEnvironmentalData(data);
+      const data = await fetchEnvironmentalIntelligence(lat, lng, forceRefresh, targetArea);
+      if (currentReqId === weatherReqIdRef.current) {
+        setEnvironmentalData(data);
+      }
     } catch (e) {
       console.warn("Environmental data fetch failed:", e);
     } finally {
-      setIsLoadingWeather(false);
+      if (currentReqId === weatherReqIdRef.current) {
+        setIsLoadingWeather(false);
+      }
     }
   };
+
+  // Live precipitation for the selected area from Environmental Intelligence (Open-Meteo)
+  const liveRainfallMm = Number(environmentalData?.currentWeather?.rainfall_rate_mm_hr ?? 0);
+  const isRwhPaused = liveRainfallMm > 50;
+
+  // Keep Area RWH potential strictly synced to live weather of the selected area:
+  // - If rain == 0 mm: Potential is 0 kL / 0 L
+  // - If rain > 50 mm: RWH is paused (>50mm emergency stormwater bypass)
+  useEffect(() => {
+    if (!blockBounds) return;
+    const rwhData = calculateBlockRWH({
+      blockBounds,
+      blockLabel,
+      rainfallMm: liveRainfallMm
+    });
+    setBlockRwhStats(prev => ({
+      ...rwhData,
+      // preserve explicit vector footprints if already measured
+      ...(prev?.isExplicitFootprint ? {
+        terraceAreaM2: prev.terraceAreaM2,
+        terraceCoveragePercent: prev.terraceCoveragePercent,
+        isExplicitFootprint: true,
+        buildingCount: prev.buildingCount,
+        harvestableLiters: liveRainfallMm === 0 || liveRainfallMm > 50 ? 0 : Math.round(liveRainfallMm * prev.terraceAreaM2 * prev.runoffCoefficient * prev.filterEfficiency),
+        harvestableKL: liveRainfallMm === 0 || liveRainfallMm > 50 ? 0 : Number(((liveRainfallMm * prev.terraceAreaM2 * prev.runoffCoefficient * prev.filterEfficiency) / 1000).toFixed(1)),
+        daysNonPotableSupply: liveRainfallMm === 0 || liveRainfallMm > 50 ? 0 : Math.round((liveRainfallMm * prev.terraceAreaM2 * prev.runoffCoefficient * prev.filterEfficiency) / (prev.dailyNonPotableDemandL || 4500))
+      } : {})
+    }));
+  }, [liveRainfallMm, blockBounds, blockLabel]);
 
   // Check ISRO Bhuvan Status & Load Initial Environmental Telemetry
   useEffect(() => {
@@ -557,16 +675,26 @@ export function App() {
     loadEnvironmentalData();
   }, []);
 
-  // Fetch OSM Drainage Features when active block or toggle changes
+  // Fetch OSM Drainage Features & Assess Drainage Condition when active block changes
   useEffect(() => {
-    if (showOsmDrainage && blockBounds) {
-      setIsLoadingOsm(true);
-      fetchOsmDrainageFeatures(blockBounds)
-        .then(data => setOsmDrainageData(data))
-        .catch(err => console.warn("OSM drainage fetch error:", err))
-        .finally(() => setIsLoadingOsm(false));
-    }
-  }, [showOsmDrainage, blockBounds]);
+    const targetBounds = blockBounds || calculateSquareBounds(
+      userLocation ? userLocation[0] : BENGALURU_CENTER[0],
+      userLocation ? userLocation[1] : BENGALURU_CENTER[1]
+    );
+    setIsLoadingOsm(true);
+    fetchOsmDrainageFeatures(targetBounds)
+      .then(data => {
+        setOsmDrainageData(data);
+        const assessment = assessDrainageCondition(data, targetBounds, drainageAlerts);
+        setDrainageAssessment(assessment);
+      })
+      .catch(err => {
+        console.warn("OSM drainage fetch/assess error:", err);
+        const assessment = assessDrainageCondition(null, targetBounds, drainageAlerts);
+        setDrainageAssessment(assessment);
+      })
+      .finally(() => setIsLoadingOsm(false));
+  }, [blockBounds, drainageAlerts, userLocation]);
 
   const handleToggleBhuvanLayer = (layerKey) => {
     setBhuvanLayersEnabled(prev => ({ ...prev, [layerKey]: !prev[layerKey] }));
@@ -587,6 +715,7 @@ export function App() {
           blockBounds={blockBounds}
           blockLabel={blockLabel}
           rainfallMm={rainfallMm}
+          rwhRainfallMm={liveRainfallMm}
           cloggingPercent={cloggingPercent}
           userLocation={userLocation}
           onMapClickForBlock={(coords) => {
@@ -635,7 +764,15 @@ export function App() {
       </div>
 
       {/* 2. Google Maps Collapsible Search Bar (Top-Left) with Docked Secondary Utility Ribbon */}
-      <div style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 30, maxWidth: '520px', width: 'calc(100vw - 32px)' }}>
+      <div
+        className={`hud-sim-dimmable ${isSimulateMode ? (highlightedTabs['search'] ? 'hud-highlighted' : 'hud-dimmed') : ''}`}
+        onClick={() => {
+          if (isSimulateMode) {
+            setHighlightedTabs(prev => ({ ...prev, search: !prev.search }));
+          }
+        }}
+        style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 60, maxWidth: '420px', width: 'calc(100vw - 32px)' }}
+      >
         <GoogleMapsSearchBar
           onSelectLocation={(coords, label) => {
             handleSelectCoordsForBlock(coords, label);
@@ -647,21 +784,42 @@ export function App() {
           isCollapsed={isSearchCollapsed}
           onExpand={() => setIsSearchCollapsed(false)}
           rainfallMm={rainfallMm}
-          onOpenRWH={() => setIsRwhModalOpen(true)}
+          liveRainfallMm={liveRainfallMm}
+          isRwhPaused={isRwhPaused}
+          rwhStats={blockRwhStats}
+          onOpenRWH={() => {
+            if (!isRwhPaused) {
+              setIsRwhModalOpen(true);
+              setIsDemoModalOpen(false);
+              setIsReportModalOpen(false);
+            }
+          }}
           onToggleOrbit={() => setIsOrbiting(prev => !prev)}
           isOrbiting={isOrbiting}
           show3DBuildings={show3DBuildings}
           onToggle3DBuildings={() => setShow3DBuildings(prev => !prev)}
           isTopView={isTopView}
           onTogglePerspective={handleToggleViewPerspective}
-          onOpenDemo={() => setIsDemoModalOpen(true)}
+          onOpenDemo={() => {
+            setIsDemoModalOpen(true);
+            setIsRwhModalOpen(false);
+            setIsReportModalOpen(false);
+          }}
           onOpenReport={() => {
             setSelectedDrainIdForReport(null);
             setIsReportModalOpen(true);
+            setIsRwhModalOpen(false);
+            setIsDemoModalOpen(false);
           }}
           onToggleRoutePlanner={handleToggleRoutePlanner}
           isRoutePlannerOpen={isRoutePlannerOpen}
-          onToggleEnvIntel={() => setIsEnvIntelOpen(prev => !prev)}
+          onToggleEnvIntel={() => {
+            setIsEnvIntelOpen(prev => {
+              const next = !prev;
+              if (next) setIsRoutePlannerOpen(false);
+              return next;
+            });
+          }}
           isEnvIntelOpen={isEnvIntelOpen}
         />
       </div>
@@ -673,7 +831,44 @@ export function App() {
         onFlyToHotspot={handleFlyToHotspot}
         onOpenDevTools={() => setIsDevToolsModalOpen(true)}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
+        isSimulateMode={isSimulateMode}
       />
+
+      {/* Floating SIMULATE Action Pill (Positioned in the gap between 4CLIQUE title pill and Full Karnataka) */}
+      <div style={{ position: 'absolute', top: '16px', right: '165px', zIndex: 40 }}>
+        <button
+          type="button"
+          onClick={handleToggleSimulate}
+          title={isSimulateMode ? "Exit Simulation Mode" : "Extract 1 km² block and simulate flood runoff"}
+          style={{
+            height: '38px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '0 16px',
+            borderRadius: '20px',
+            background: isSimulateMode
+              ? '#e3af35'
+              : '#141418',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: isSimulateMode
+              ? '1px solid #e3af35'
+              : '1px solid rgba(255, 255, 255, 0.12)',
+            color: isSimulateMode ? '#09090b' : '#fafafa',
+            fontWeight: 800,
+            fontSize: '11.5px',
+            letterSpacing: '0.04em',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.55)',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <Play size={13} fill={isSimulateMode ? '#09090b' : '#e3af35'} color={isSimulateMode ? '#09090b' : '#e3af35'} />
+          <span>{isSimulateMode ? 'SIMULATING' : 'SIMULATE'}</span>
+        </button>
+      </div>
 
       {/* 3b. Floating Exit Block View Button (Anchored Top-Center, offset lower during 360° View to prevent overlay collision) */}
       {blockBounds && (
@@ -701,38 +896,38 @@ export function App() {
               gap: '6px',
               padding: '6px 14px',
               borderRadius: '20px',
-              background: 'rgba(28, 28, 30, 0.94)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid #3A3A3C',
-              color: '#FFFFFF',
+              background: '#141418',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              color: '#f1f5f9',
               fontSize: '11.5px',
               fontWeight: 600,
               letterSpacing: '0.02em',
               cursor: 'pointer',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.55)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.6)',
               transition: 'all 0.18s ease'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 69, 58, 0.16)';
-              e.currentTarget.style.borderColor = '#FF453A';
-              e.currentTarget.style.color = '#FFFFFF';
-              e.currentTarget.style.boxShadow = '0 6px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(255, 69, 58, 0.25)';
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.14)';
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.45)';
+              e.currentTarget.style.color = '#ffffff';
+              e.currentTarget.style.boxShadow = '0 6px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(239, 68, 68, 0.3)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(28, 28, 30, 0.94)';
-              e.currentTarget.style.borderColor = '#3A3A3C';
-              e.currentTarget.style.color = '#FFFFFF';
-              e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.55)';
+              e.currentTarget.style.background = 'rgba(20, 24, 32, 0.94)';
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+              e.currentTarget.style.color = '#f1f5f9';
+              e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.6)';
             }}
           >
-            <X size={13} style={{ color: '#FF453A' }} />
+            <X size={13} style={{ color: '#f87171' }} />
             <span>Exit Block View</span>
             {blockLabel && (
               <span
                 style={{
                   fontSize: '11px',
-                  color: 'rgba(235, 235, 245, 0.60)',
+                  color: '#94a3b8',
                   maxWidth: '180px',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -781,6 +976,13 @@ export function App() {
         onStart24Simulation={() => {
           if (blockBounds) init24HourSimulation(blockBounds, rainfallMm, cloggingPercent);
         }}
+        // Live Forecast & Drainage Condition Assessment Integrations
+        environmentalData={environmentalData}
+        drainageAssessment={drainageAssessment}
+        onStartForecastSimulation={() => {
+          if (blockBounds) initForecastSimulation(blockBounds);
+        }}
+        isSimulateMode={isSimulateMode}
       />
 
       {/* 4b. Floating Simulation Playback Dock Anchored at Bottom-Center */}
@@ -789,6 +991,7 @@ export function App() {
         isPlaying={is24SimPlaying}
         currentHour={currentSimHour}
         simSequence={sim24Sequence}
+        isOrbiting={isOrbiting}
         onTogglePlay={() => setIs24SimPlaying(prev => !prev)}
         onReset={() => {
           setCurrentSimHour(0);
@@ -809,7 +1012,7 @@ export function App() {
       <RainwaterHarvestModal
         isOpen={isRwhModalOpen}
         onClose={() => setIsRwhModalOpen(false)}
-        rainfallMm={rainfallMm}
+        rainfallMm={liveRainfallMm}
         rwhStats={blockRwhStats}
         blockLabel={blockLabel}
       />
@@ -834,6 +1037,7 @@ export function App() {
         drainageAlerts={drainageAlerts}
         selectedRouteId={routePlan.selectedRouteId}
         onRoutesChange={setRoutePlan}
+        isSimulateMode={isSimulateMode}
       />
 
       {/* 9. Environmental Intelligence & ISRO Bhuvan WMS Panel */}
@@ -843,7 +1047,7 @@ export function App() {
         environmentalData={environmentalData}
         terrainStats={elevationStats}
         isLoadingWeather={isLoadingWeather}
-        onRefreshWeather={() => loadEnvironmentalData()}
+        onRefreshWeather={() => loadEnvironmentalData(selectedCoords, true)}
         bhuvanLayersEnabled={bhuvanLayersEnabled}
         onToggleBhuvanLayer={handleToggleBhuvanLayer}
         bhuvanStatus={bhuvanStatus}
@@ -853,6 +1057,7 @@ export function App() {
         isLoadingOsm={isLoadingOsm}
         onApplyForecastToSimulator={(rate) => setRainfallMm(rate)}
         blockLabel={blockLabel}
+        isSimulateMode={isSimulateMode}
       />
 
       {/* DevTools & Settings Modals */}

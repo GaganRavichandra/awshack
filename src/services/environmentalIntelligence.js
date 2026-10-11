@@ -2,6 +2,8 @@
 // Fetches real-time weather observations, hourly precipitation forecasts,
 // wind dynamics, and atmospheric metrics for Bengaluru via Open-Meteo API.
 
+import { cleanToEnglish, findNearestEnglishLocality } from './locationiq';
+
 const OPEN_METEO_FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5-minute cache
 
@@ -24,12 +26,14 @@ export function getWindCompassDirection(degrees) {
  * @param {number} lat - Latitude
  * @param {number} lng - Longitude
  * @param {boolean} [forceRefresh=false] - Force cache bypass
+ * @param {string} [areaName=null] - Selected area name in English
  */
-export async function fetchEnvironmentalIntelligence(lat, lng, forceRefresh = false) {
+export async function fetchEnvironmentalIntelligence(lat, lng, forceRefresh = false, areaName = null) {
   // Fallback to Bengaluru center if coordinates are invalid
   const validLat = typeof lat === 'number' && !isNaN(lat) ? lat : 12.9352;
   const validLng = typeof lng === 'number' && !isNaN(lng) ? lng : 77.6805;
 
+  const resolvedArea = cleanToEnglish(areaName) || findNearestEnglishLocality(validLat, validLng) || 'Bengaluru Urban';
   const cacheKey = `${validLat.toFixed(3)},${validLng.toFixed(3)}`;
   const now = Date.now();
 
@@ -38,6 +42,10 @@ export async function fetchEnvironmentalIntelligence(lat, lng, forceRefresh = fa
     if (now - cached.cachedAt < CACHE_TTL_MS) {
       return {
         ...cached.data,
+        location: {
+          ...cached.data.location,
+          areaName: resolvedArea
+        },
         sourceStatus: 'CACHED',
         isCached: true
       };
@@ -61,7 +69,7 @@ export async function fetchEnvironmentalIntelligence(lat, lng, forceRefresh = fa
         longitude: validLng.toFixed(4),
         current: 'precipitation,rain,temperature_2m,relative_humidity_2m,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m',
         hourly: 'precipitation,precipitation_probability,temperature_2m,wind_speed_10m',
-        forecast_hours: '12',
+        forecast_hours: '24',
         timezone: 'Asia/Kolkata'
       });
 
@@ -85,7 +93,7 @@ export async function fetchEnvironmentalIntelligence(lat, lng, forceRefresh = fa
       const windDirDeg = current.wind_direction_10m ?? null;
       const windGustsKmh = current.wind_gusts_10m !== undefined ? Number(current.wind_gusts_10m.toFixed(1)) : null;
 
-      // 3. Process hourly precipitation forecasts
+      // 3. Process hourly precipitation forecasts (up to 24-hour horizon)
       const hourlyTimes = hourly.time || [];
       const hourlyPrecip = hourly.precipitation || [];
       const hourlyProb = hourly.precipitation_probability || [];
@@ -93,7 +101,7 @@ export async function fetchEnvironmentalIntelligence(lat, lng, forceRefresh = fa
 
       const forecastTimeline = [];
 
-      for (let i = 0; i < hourlyTimes.length && i < 12; i++) {
+      for (let i = 0; i < hourlyTimes.length && i < 24; i++) {
         const timeStr = hourlyTimes[i];
         const precipMm = Math.max(0, Number((hourlyPrecip[i] ?? 0).toFixed(1)));
         const probPct = Math.max(0, Math.min(100, Math.round(hourlyProb[i] ?? 0)));
@@ -108,10 +116,11 @@ export async function fetchEnvironmentalIntelligence(lat, lng, forceRefresh = fa
         });
       }
 
-      // 4. Calculate Accumulation for Next 1-Hour, 3-Hours, and 6-Hours
+      // 4. Calculate Accumulation for Next 1-Hour, 3-Hours, 6-Hours, and 24-Hours
       const next1hAccumulation = forecastTimeline.slice(0, 1).reduce((sum, h) => sum + h.precipitation_mm, 0);
       const next3hAccumulation = forecastTimeline.slice(0, 3).reduce((sum, h) => sum + h.precipitation_mm, 0);
       const next6hAccumulation = forecastTimeline.slice(0, 6).reduce((sum, h) => sum + h.precipitation_mm, 0);
+      const next24hAccumulation = forecastTimeline.reduce((sum, h) => sum + h.precipitation_mm, 0);
 
       const next1hAvgRate = next1hAccumulation;
       const next3hAvgRate = Number((next3hAccumulation / 3).toFixed(1));
@@ -123,6 +132,8 @@ export async function fetchEnvironmentalIntelligence(lat, lng, forceRefresh = fa
           lat: validLat,
           lng: validLng,
           city: 'Bengaluru',
+          areaName: resolvedArea,
+          displayName: `${resolvedArea}, Bengaluru`,
           timezone: 'Asia/Kolkata'
         },
         currentWeather: {
@@ -143,6 +154,7 @@ export async function fetchEnvironmentalIntelligence(lat, lng, forceRefresh = fa
           next_3h_avg_rate_mm_hr: next3hAvgRate,
           next_3h_peak_rate_mm_hr: Number(maxNext3hRate.toFixed(1)),
           next_6h_accumulation_mm: Number(next6hAccumulation.toFixed(1)),
+          next_24h_accumulation_mm: Number(next24hAccumulation.toFixed(1)),
           precipitation_probability_pct: maxProbNext3h,
           timeline: forecastTimeline
         },
