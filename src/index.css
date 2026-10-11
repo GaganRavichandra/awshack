@@ -3,19 +3,24 @@
 @tailwind utilities;
 
 :root {
-  --bg-dark: #12151c;
-  --surface-dark: #181a20;
-  --surface-card: rgba(24, 26, 32, 0.92);
-  --google-blue: #8ab4f8;
-  --google-green: #34a853;
-  --google-yellow: #fbbc04;
-  --google-red: #ea4335;
-  --neon-cyan: #00f0ff;
-  --text-main: #e8eaed;
-  --text-sub: #9aa0a6;
-  --text-dim: #80868b;
-  --border-subtle: rgba(255, 255, 255, 0.12);
-  --font-sans: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --bg-dark: #000000;
+  --surface-dark: #1C1C1E;
+  --surface-card: rgba(28, 28, 30, 0.92);
+  --surface-elevated: #2C2C2E;
+  --apple-blue: #0A84FF;
+  --apple-green: #30D158;
+  --apple-orange: #FF9F0A;
+  --apple-red: #FF453A;
+  --google-blue: #0A84FF;
+  --google-green: #30D158;
+  --google-yellow: #FF9F0A;
+  --google-red: #FF453A;
+  --neon-cyan: #0A84FF;
+  --text-main: #FFFFFF;
+  --text-sub: rgba(235, 235, 245, 0.60);
+  --text-dim: rgba(235, 235, 245, 0.40);
+  --border-subtle: #3A3A3C;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: 'JetBrains Mono', 'Roboto Mono', monospace;
 }
 
@@ -47,7 +52,7 @@ body {
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--google-blue);
+  background: var(--apple-blue);
 }
 
 .font-mono {
@@ -55,7 +60,7 @@ body {
 }
 
 /* =========================================================================
-   GOOGLE MAPS DARK MODE SEARCH BAR
+   APPLE MAPS DARK MODE SEARCH BAR
    ========================================================================= */
 
 .gmaps-search-card {
@@ -64,7 +69,7 @@ body {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-subtle);
-  border-radius: 28px;
+  border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
   overflow: hidden;
   transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
@@ -100,15 +105,20 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  border: none;
-  background: transparent;
-  color: var(--text-sub);
+  border: 1px solid #3A3A3C;
+  background: rgba(37, 37, 40, 0.85);
+  color: #FFFFFF;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
 }
 .gmaps-icon-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-main);
+  background: rgba(58, 58, 60, 0.9);
+  color: #0A84FF;
+}
+.gmaps-icon-btn.active {
+  background: rgba(10, 132, 255, 0.2);
+  border-color: #0A84FF;
+  color: #0A84FF;
 }
 
 .gmaps-divider {
@@ -123,28 +133,30 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 12px;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text-main);
+  padding: 6px 14px;
+  border-radius: 14px;
+  border: 1px solid #0A84FF;
+  background: #0A84FF;
+  color: #FFFFFF;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.04em;
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 .gmaps-simulate-pill-btn:hover {
-  background: rgba(0, 240, 255, 0.12);
-  border-color: rgba(0, 240, 255, 0.4);
-  color: var(--neon-cyan);
+  background: #0071E3;
+  border-color: #0071E3;
+  color: #FFFFFF;
+  box-shadow: 0 0 14px rgba(10, 132, 255, 0.45);
 }
 .gmaps-simulate-pill-btn.active {
-  background: rgba(0, 240, 255, 0.2);
-  border-color: var(--neon-cyan);
-  color: var(--neon-cyan);
-  box-shadow: 0 0 14px rgba(0, 240, 255, 0.35);
+  background: #0071E3;
+  border-color: #0A84FF;
+  color: #FFFFFF;
+  box-shadow: 0 0 16px rgba(10, 132, 255, 0.6);
 }
 
 /* Collapsed Pill on Map Move */
@@ -420,23 +432,26 @@ body {
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
-  border-radius: 20px;
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-card);
-  backdrop-filter: blur(14px);
-  color: var(--text-main);
+  border-radius: 16px;
+  border: 1px solid #3A3A3C;
+  background: rgba(37, 37, 40, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #FFFFFF;
   font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-  transition: all 0.15s;
+  transition: all 0.15s ease;
 }
 .gmaps-tool-btn:hover {
-  background: rgba(41, 49, 66, 0.98);
+  background: rgba(58, 58, 60, 0.9);
 }
 .gmaps-tool-btn.active {
-  border-color: var(--google-blue);
-  color: #ffffff;
+  border-color: #0A84FF;
+  color: #FFFFFF;
+  background: rgba(37, 37, 40, 0.95);
+  box-shadow: 0 0 12px rgba(10, 132, 255, 0.35);
 }
 
 .gmaps-armed-hint-banner {
@@ -1058,12 +1073,12 @@ body {
   width: 380px;
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 90px);
-  background: rgba(18, 22, 30, 0.96);
+  background: rgba(28, 28, 30, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 1px rgba(0, 240, 255, 0.25);
+  border: 1px solid #3A3A3C;
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
   z-index: 40;
   overflow: hidden;
   display: flex;
@@ -1076,33 +1091,33 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(24, 28, 38, 0.85);
+  border-bottom: 1px solid #3A3A3C;
+  background: rgba(44, 44, 46, 0.92);
 }
 
 .route-panel-icon {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: rgba(69, 214, 197, 0.14);
-  border: 1px solid rgba(69, 214, 197, 0.35);
+  background: rgba(10, 132, 255, 0.16);
+  border: 1px solid rgba(10, 132, 255, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #45d6c5;
+  color: #0A84FF;
 }
 
 .route-panel-header strong {
   display: block;
-  font-size: 12.5px;
-  font-weight: 800;
-  color: #f1f5f9;
+  font-size: 13px;
+  font-weight: 600;
+  color: #FFFFFF;
 }
 
 .route-panel-header span {
   display: block;
-  font-size: 9.5px;
-  color: #94a3b8;
+  font-size: 10px;
+  color: rgba(235, 235, 245, 0.60);
   margin-top: 1px;
 }
 
@@ -1120,10 +1135,10 @@ body {
 
 .route-location-field label {
   display: block;
-  font-size: 9px;
-  font-weight: 700;
-  color: #94a3b8;
-  letter-spacing: 0.05em;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: rgba(235, 235, 245, 0.60);
+  letter-spacing: 0.04em;
   margin-bottom: 4px;
 }
 
@@ -1132,16 +1147,16 @@ body {
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #8ab4f8;
+  background: #2C2C2E;
+  border: 1px solid #3A3A3C;
+  border-radius: 12px;
+  color: #0A84FF;
   transition: all 0.18s ease;
 }
 
 .route-input-wrap:focus-within {
-  border-color: #00f0ff;
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+  border-color: #0A84FF;
+  box-shadow: 0 0 10px rgba(10, 132, 255, 0.25);
 }
 
 .route-input-wrap input {
@@ -1149,7 +1164,7 @@ body {
   background: transparent;
   border: none;
   outline: none;
-  color: #f1f5f9;
+  color: #FFFFFF;
   font-size: 12px;
   font-weight: 500;
   min-width: 0;
@@ -1163,10 +1178,10 @@ body {
   max-height: 180px;
   overflow-y: auto;
   margin-top: 4px;
-  background: rgba(18, 22, 30, 0.98);
+  background: rgba(28, 28, 30, 0.98);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
+  border: 1px solid #3A3A3C;
+  border-radius: 12px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7);
   z-index: 50;
 }
@@ -1176,7 +1191,7 @@ body {
   width: 100%;
   padding: 8px 10px;
   text-align: left;
-  color: #f1f5f9;
+  color: #FFFFFF;
   border: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   background: transparent;
@@ -1185,20 +1200,20 @@ body {
 }
 
 .route-search-results button:hover {
-  background: rgba(0, 240, 255, 0.1);
+  background: rgba(10, 132, 255, 0.15);
 }
 
 .route-search-results strong {
   display: block;
   font-size: 11px;
   font-weight: 600;
-  color: #e8eaed;
+  color: #FFFFFF;
 }
 
 .route-search-results span {
   display: block;
   font-size: 9px;
-  color: #94a3b8;
+  color: rgba(235, 235, 245, 0.60);
   margin-top: 2px;
 }
 
@@ -1211,19 +1226,19 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 24px;
+  width: 26px;
   height: 28px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(24, 28, 38, 0.95);
-  color: #94a3b8;
+  border-radius: 8px;
+  border: 1px solid #3A3A3C;
+  background: rgba(37, 37, 40, 0.85);
+  color: rgba(235, 235, 245, 0.60);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .route-swap-button:hover {
-  color: #00f0ff;
-  border-color: #00f0ff;
+  color: #0A84FF;
+  border-color: #0A84FF;
 }
 
 .route-plan-button {
@@ -1233,19 +1248,21 @@ body {
   gap: 8px;
   width: 100%;
   height: 38px;
-  border-radius: 8px;
-  border: none;
-  background: linear-gradient(135deg, #45d6c5 0%, #0077b6 100%);
-  color: #05080c;
+  border-radius: 12px;
+  border: 1px solid #0A84FF;
+  background: #0A84FF;
+  color: #FFFFFF;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(69, 214, 197, 0.35);
+  box-shadow: 0 4px 16px rgba(10, 132, 255, 0.35);
   transition: all 0.18s ease;
 }
 
 .route-plan-button:hover {
-  box-shadow: 0 6px 20px rgba(69, 214, 197, 0.5);
+  background: #0071E3;
+  border-color: #0071E3;
+  box-shadow: 0 6px 20px rgba(10, 132, 255, 0.5);
   transform: translateY(-1px);
 }
 
@@ -1257,7 +1274,7 @@ body {
 
 .route-panel-message {
   padding: 0 14px 10px;
-  color: #fbbc04;
+  color: #FF9F0A;
   font-size: 10.5px;
 }
 
@@ -1275,9 +1292,9 @@ body {
   justify-content: space-between;
   gap: 6px;
   padding: 2px 2px 4px;
-  color: #94a3b8;
-  font-size: 8.5px;
-  font-weight: 800;
+  color: rgba(235, 235, 245, 0.60);
+  font-size: 9px;
+  font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -1287,10 +1304,10 @@ body {
   align-items: flex-start;
   gap: 8px;
   padding: 8px 10px;
-  border-radius: 8px;
-  background: rgba(69, 214, 197, 0.1);
-  border: 1px solid rgba(69, 214, 197, 0.3);
-  color: #c5f5e8;
+  border-radius: 12px;
+  background: rgba(48, 209, 88, 0.12);
+  border: 1px solid rgba(48, 209, 88, 0.35);
+  color: #FFFFFF;
   font-size: 10.5px;
   line-height: 1.4;
 }
@@ -1298,17 +1315,17 @@ body {
 .route-recommendation svg {
   flex-shrink: 0;
   margin-top: 1px;
-  color: #45d6c5;
+  color: #30D158;
 }
 
 .route-recommendation-warning {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.35);
-  color: #fca5a5;
+  background: rgba(255, 69, 58, 0.12);
+  border-color: rgba(255, 69, 58, 0.35);
+  color: #FFFFFF;
 }
 
 .route-recommendation-warning svg {
-  color: #f87171;
+  color: #FF453A;
 }
 
 .route-option {
@@ -1316,20 +1333,20 @@ body {
   align-items: flex-start;
   gap: 8px;
   width: 100%;
-  padding: 10px;
+  padding: 10px 12px;
   text-align: left;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid #3A3A3C;
+  background: #2C2C2E;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .route-option:hover,
 .route-option.selected {
-  border-color: rgba(0, 240, 255, 0.5);
-  background: rgba(0, 240, 255, 0.08);
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.15);
+  border-color: #0A84FF;
+  background: rgba(10, 132, 255, 0.14);
+  box-shadow: 0 0 12px rgba(10, 132, 255, 0.25);
 }
 
 .route-option-color {
@@ -1420,25 +1437,25 @@ body {
 .route-header-close-btn {
   width: 28px;
   height: 28px;
-  color: #94a3b8;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  color: #FFFFFF;
+  border-radius: 8px;
+  border: 1px solid #3A3A3C;
+  background: rgba(37, 37, 40, 0.85);
   transition: all 0.15s ease;
 }
 
 .route-header-close-btn:hover {
-  color: #fca5a5;
-  border-color: rgba(239, 68, 68, 0.4);
-  background: rgba(239, 68, 68, 0.15);
+  color: #FF453A;
+  border-color: #FF453A;
+  background: rgba(255, 69, 58, 0.16);
 }
 
 .route-sim-controls-card {
   margin: 0 14px 10px;
   padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(13, 17, 24, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  background: #2C2C2E;
+  border: 1px solid #3A3A3C;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1710,12 +1727,12 @@ body {
   width: 100%;
   margin-top: 10px;
   padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.04);
-  color: #e2e8f0;
+  border-radius: 12px;
+  border: 1px solid #3A3A3C;
+  background: #2C2C2E;
+  color: #FFFFFF;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1725,8 +1742,8 @@ body {
 }
 
 .route-exit-footer-button:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.45);
-  color: #fca5a5;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+  background: rgba(255, 69, 58, 0.16);
+  border-color: #FF453A;
+  color: #FF453A;
+  box-shadow: 0 0 12px rgba(255, 69, 58, 0.25);
 }

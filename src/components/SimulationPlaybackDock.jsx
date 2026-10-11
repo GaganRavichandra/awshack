@@ -47,10 +47,10 @@ export function SimulationPlaybackDock({
     : 0;
 
   // Depth color coding
-  let depthColor = '#10b981'; // Green (Safe)
-  if (peakDepthM >= 0.6) depthColor = '#ef4444'; // Red (Severe)
-  else if (peakDepthM >= 0.3) depthColor = '#f97316'; // Orange (Moderate)
-  else if (peakDepthM >= 0.08) depthColor = '#eab308'; // Yellow (Low risk)
+  let depthColor = '#30D158'; // Green (Safe)
+  if (peakDepthM >= 0.6) depthColor = '#FF453A'; // Red (Severe)
+  else if (peakDepthM >= 0.3) depthColor = '#FF9F0A'; // Orange (Moderate)
+  else if (peakDepthM >= 0.08) depthColor = '#FFD60A'; // Yellow (Low risk)
 
   return (
     <div
@@ -63,15 +63,16 @@ export function SimulationPlaybackDock({
         width: 'auto',
         minWidth: '420px',
         maxWidth: '540px',
-        background: 'rgba(17, 21, 29, 0.95)',
-        backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(0, 240, 255, 0.25)',
-        borderRadius: '14px',
-        padding: '10px 14px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 240, 255, 0.12)',
+        background: 'rgba(28, 28, 30, 0.94)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid #3A3A3C',
+        borderRadius: '16px',
+        padding: '12px 16px',
+        boxShadow: '0 12px 36px rgba(0, 0, 0, 0.65)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '9px',
+        gap: '10px',
         animation: 'fadeInSlideUp 0.25s ease-out',
         pointerEvents: 'auto'
       }}
@@ -87,20 +88,20 @@ export function SimulationPlaybackDock({
             display: 'flex',
             alignItems: 'center',
             gap: '5px',
-            padding: '6px 12px',
-            borderRadius: '7px',
+            padding: '6px 14px',
+            borderRadius: '10px',
             border: 'none',
-            background: isPlaying ? '#ffac33' : '#00f0ff',
-            color: '#05080c',
-            fontWeight: 800,
+            background: isPlaying ? '#FF9F0A' : '#0A84FF',
+            color: '#FFFFFF',
+            fontWeight: 600,
             fontSize: '11px',
             cursor: 'pointer',
             transition: 'all 0.15s ease',
             flexShrink: 0,
-            boxShadow: isPlaying ? '0 0 10px rgba(255, 172, 51, 0.4)' : '0 0 10px rgba(0, 240, 255, 0.4)'
+            boxShadow: isPlaying ? '0 0 10px rgba(255, 159, 10, 0.4)' : '0 0 10px rgba(10, 132, 255, 0.4)'
           }}
         >
-          {isPlaying ? <Pause size={13} fill="#05080c" /> : <Play size={13} fill="#05080c" />}
+          {isPlaying ? <Pause size={13} fill="#FFFFFF" /> : <Play size={13} fill="#FFFFFF" />}
           <span>{isPlaying ? 'PAUSE' : 'PLAY'}</span>
         </button>
 
@@ -113,11 +114,11 @@ export function SimulationPlaybackDock({
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
-            padding: '6px 10px',
-            borderRadius: '7px',
-            border: '1px solid rgba(255, 255, 255, 0.14)',
-            background: 'rgba(255, 255, 255, 0.05)',
-            color: '#cbd5e1',
+            padding: '6px 12px',
+            borderRadius: '10px',
+            border: '1px solid #3A3A3C',
+            background: '#2C2C2E',
+            color: '#FFFFFF',
             fontWeight: 600,
             fontSize: '11px',
             cursor: 'pointer',
@@ -140,12 +141,12 @@ export function SimulationPlaybackDock({
             onChange={(e) => onHourChange && onHourChange(Number(e.target.value))}
             style={{
               width: '100%',
-              accentColor: '#00f0ff',
+              accentColor: '#0A84FF',
               cursor: 'pointer',
               height: '4px'
             }}
           />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#64748b' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: 'rgba(235, 235, 245, 0.60)' }}>
             <span>0h (Dry)</span>
             <span>7h (Peak)</span>
             <span>16h (Recede)</span>
@@ -157,10 +158,10 @@ export function SimulationPlaybackDock({
         <div
           style={{
             padding: '4px 8px',
-            borderRadius: '6px',
-            background: 'rgba(0, 240, 255, 0.12)',
-            border: '1px solid rgba(0, 240, 255, 0.3)',
-            color: '#00f0ff',
+            borderRadius: '8px',
+            background: 'rgba(10, 132, 255, 0.16)',
+            border: '1px solid rgba(10, 132, 255, 0.35)',
+            color: '#0A84FF',
             fontSize: '11px',
             fontWeight: 700,
             fontFamily: 'monospace',
@@ -178,48 +179,48 @@ export function SimulationPlaybackDock({
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
           gap: '8px',
-          padding: '6px 10px',
-          borderRadius: '8px',
-          background: 'rgba(0, 0, 0, 0.35)',
-          border: '1px solid rgba(255, 255, 255, 0.06)'
+          padding: '8px 12px',
+          borderRadius: '12px',
+          background: '#2C2C2E',
+          border: '1px solid #3A3A3C'
         }}
       >
         {/* Metric 1: Timeline Hour */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: '9px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <span style={{ fontSize: '9px', color: 'rgba(235, 235, 245, 0.60)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             Hour
           </span>
-          <span style={{ fontSize: '12px', fontWeight: 700, color: '#f1f5f9', marginTop: '1px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 600, color: '#FFFFFF', marginTop: '1px' }}>
             T + {currentHour}h
           </span>
         </div>
 
         {/* Metric 2: Max Water Depth */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: '9px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <span style={{ fontSize: '9px', color: 'rgba(235, 235, 245, 0.60)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             Max Depth
           </span>
-          <span style={{ fontSize: '12px', fontWeight: 800, color: depthColor, marginTop: '1px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: depthColor, marginTop: '1px' }}>
             {peakDepthM.toFixed(2)} m
           </span>
         </div>
 
         {/* Metric 3: Inundated Area % */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: '9px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <span style={{ fontSize: '9px', color: 'rgba(235, 235, 245, 0.60)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             Inundated Area
           </span>
-          <span style={{ fontSize: '12px', fontWeight: 800, color: floodFraction > 0.3 ? '#f97316' : '#38bdf8', marginTop: '1px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: floodFraction > 0.3 ? '#FF9F0A' : '#0A84FF', marginTop: '1px' }}>
             {Math.round(floodFraction * 100)}%
           </span>
         </div>
 
         {/* Metric 4: Risk Buildings */}
         <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'right' }}>
-          <span style={{ fontSize: '9px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <span style={{ fontSize: '9px', color: 'rgba(235, 235, 245, 0.60)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             Risk Bldgs
           </span>
-          <span style={{ fontSize: '12px', fontWeight: 800, color: affectedBuildings > 12 ? '#ef4444' : (affectedBuildings > 0 ? '#f59e0b' : '#10b981'), marginTop: '1px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: affectedBuildings > 12 ? '#FF453A' : (affectedBuildings > 0 ? '#FF9F0A' : '#30D158'), marginTop: '1px' }}>
             {affectedBuildings}
           </span>
         </div>

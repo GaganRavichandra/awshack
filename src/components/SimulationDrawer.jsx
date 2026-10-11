@@ -102,30 +102,31 @@ export function SimulationDrawer({
         maxWidth: 'calc(100vw - 32px)',
         zIndex: 50,
         pointerEvents: 'auto',
-        background: 'rgba(19, 24, 34, 0.95)',
-        backdropFilter: 'blur(16px)',
-        borderRadius: '16px',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.65), 0 0 25px rgba(0, 240, 255, 0.1)',
+        background: 'rgba(28, 28, 30, 0.94)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRadius: '18px',
+        border: '1px solid #3A3A3C',
+        boxShadow: '0 16px 40px rgba(0, 0, 0, 0.65)',
         overflow: 'hidden'
       }}
     >
       {/* Drawer Header */}
       <div className="gmaps-drawer-header" style={{
         padding: '12px 16px',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        borderBottom: '1px solid #3A3A3C',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        background: 'linear-gradient(90deg, rgba(0, 240, 255, 0.06), transparent)'
+        background: 'rgba(44, 44, 46, 0.92)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00f0ff', boxShadow: '0 0 8px #00f0ff' }} />
+          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0A84FF', boxShadow: '0 0 8px #0A84FF' }} />
           <div>
-            <div style={{ fontSize: '13px', fontWeight: 800, color: '#e8eaed', letterSpacing: '0.02em' }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF', letterSpacing: '0.02em' }}>
               1 km² Simulation Block
             </div>
-            <div style={{ fontSize: '10.5px', color: '#8ab4f8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '240px' }}>
+            <div style={{ fontSize: '10.5px', color: 'rgba(235, 235, 245, 0.60)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '240px' }}>
               {blockLabel || 'Extracted Zone'}
             </div>
           </div>
@@ -140,38 +141,38 @@ export function SimulationDrawer({
         
         {/* Real-time Inundation Telemetry Result Card */}
         <div style={{
-          padding: '10px 12px',
-          borderRadius: '10px',
-          background: 'rgba(24, 28, 38, 0.9)',
-          border: `1px solid ${tierColor}40`,
+          padding: '12px 14px',
+          borderRadius: '14px',
+          background: '#2C2C2E',
+          border: '1px solid #3A3A3C',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
           <div>
-            <div style={{ fontSize: '10px', color: '#9aa0a6', textTransform: 'uppercase', fontWeight: 600 }}>
+            <div style={{ fontSize: '10px', color: 'rgba(235, 235, 245, 0.60)', textTransform: 'uppercase', fontWeight: 600 }}>
               {is24SimActive ? `Hour ${currentSimHour}:00 Depth` : 'Peak Inundation'}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px', marginTop: '1px' }}>
               <span style={{ fontSize: '22px', fontWeight: 800, color: tierColor }}>
                 {peakDepthM > 0 ? `${peakDepthM} m` : '0.0 m'}
               </span>
-              <span style={{ fontSize: '11px', color: '#9aa0a6' }}>
+              <span style={{ fontSize: '11px', color: 'rgba(235, 235, 245, 0.60)' }}>
                 {tierLabel}
               </span>
             </div>
             {elevationStats && (
-              <div style={{ fontSize: '9.5px', color: '#8ab4f8', marginTop: '2px' }}>
+              <div style={{ fontSize: '9.5px', color: 'rgba(235, 235, 245, 0.60)', marginTop: '2px' }}>
                 Base Elevation: {elevationStats.minElevation.toFixed(1)}m • Surface: {elevationStats.waterSurfaceElevation.toFixed(1)}m
               </div>
             )}
           </div>
 
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '10px', color: '#9aa0a6', textTransform: 'uppercase', fontWeight: 600 }}>
+            <div style={{ fontSize: '10px', color: 'rgba(235, 235, 245, 0.60)', textTransform: 'uppercase', fontWeight: 600 }}>
               Flooded Area
             </div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#e8eaed', marginTop: '2px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginTop: '2px' }}>
               {Math.round(floodFraction * 100)}% ({simulationResult?.flooded_sqkm ?? (floodFraction * 1.0).toFixed(2)} km²)
             </div>
           </div>

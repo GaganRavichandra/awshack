@@ -63,15 +63,15 @@ export function EnvironmentalIntelPanel({
             alignItems: 'center',
             gap: '4px',
             fontSize: '9.5px',
-            fontWeight: 800,
-            padding: '2px 7px',
+            fontWeight: 700,
+            padding: '2px 8px',
             borderRadius: '10px',
-            background: 'rgba(52, 168, 83, 0.16)',
-            color: '#81c995',
-            border: '1px solid rgba(52, 168, 83, 0.35)',
+            background: 'rgba(48, 209, 88, 0.16)',
+            color: '#30D158',
+            border: '1px solid rgba(48, 209, 88, 0.35)',
             letterSpacing: '0.04em'
           }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34a853', boxShadow: '0 0 6px #34a853' }} />
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30D158', boxShadow: '0 0 6px #30D158' }} />
             LIVE
           </span>
         );
@@ -82,12 +82,12 @@ export function EnvironmentalIntelPanel({
             alignItems: 'center',
             gap: '4px',
             fontSize: '9.5px',
-            fontWeight: 800,
-            padding: '2px 7px',
+            fontWeight: 700,
+            padding: '2px 8px',
             borderRadius: '10px',
-            background: 'rgba(138, 180, 248, 0.14)',
-            color: '#8ab4f8',
-            border: '1px solid rgba(138, 180, 248, 0.35)',
+            background: 'rgba(10, 132, 255, 0.16)',
+            color: '#0A84FF',
+            border: '1px solid rgba(10, 132, 255, 0.35)',
             letterSpacing: '0.04em'
           }}>
             CACHED
@@ -100,12 +100,12 @@ export function EnvironmentalIntelPanel({
             alignItems: 'center',
             gap: '4px',
             fontSize: '9.5px',
-            fontWeight: 800,
-            padding: '2px 7px',
+            fontWeight: 700,
+            padding: '2px 8px',
             borderRadius: '10px',
-            background: 'rgba(52, 168, 83, 0.14)',
-            color: '#81c995',
-            border: '1px solid rgba(52, 168, 83, 0.35)'
+            background: 'rgba(48, 209, 88, 0.16)',
+            color: '#30D158',
+            border: '1px solid rgba(48, 209, 88, 0.35)'
           }}>
             ONLINE
           </span>
@@ -119,12 +119,12 @@ export function EnvironmentalIntelPanel({
             alignItems: 'center',
             gap: '4px',
             fontSize: '9.5px',
-            fontWeight: 800,
-            padding: '2px 7px',
+            fontWeight: 700,
+            padding: '2px 8px',
             borderRadius: '10px',
-            background: 'rgba(234, 67, 53, 0.14)',
-            color: '#f28b82',
-            border: '1px solid rgba(234, 67, 53, 0.35)'
+            background: 'rgba(255, 69, 58, 0.16)',
+            color: '#FF453A',
+            border: '1px solid rgba(255, 69, 58, 0.35)'
           }}>
             {status}
           </span>
@@ -137,16 +137,17 @@ export function EnvironmentalIntelPanel({
       className="env-intel-panel"
       style={{
         position: 'absolute',
-        top: '74px',
+        top: '195px',
         right: '16px',
         width: '380px',
         maxWidth: 'calc(100vw - 32px)',
-        background: 'rgba(18, 22, 30, 0.96)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderRadius: '16px',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 16px 40px rgba(0, 0, 0, 0.65), 0 0 1px rgba(0, 240, 255, 0.25)',
+        maxHeight: 'calc(100vh - 215px)',
+        background: 'rgba(28, 28, 30, 0.94)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        borderRadius: '18px',
+        border: '1px solid #3A3A3C',
+        boxShadow: '0 12px 36px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.3)',
         zIndex: 40,
         overflow: 'hidden',
         display: 'flex',
@@ -162,8 +163,8 @@ export function EnvironmentalIntelPanel({
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '12px 14px',
-          borderBottom: isCollapsed ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
-          background: 'rgba(24, 28, 38, 0.85)'
+          borderBottom: isCollapsed ? 'none' : '1px solid #3A3A3C',
+          background: 'rgba(44, 44, 46, 0.92)'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -171,31 +172,31 @@ export function EnvironmentalIntelPanel({
             width: '28px',
             height: '28px',
             borderRadius: '8px',
-            background: 'rgba(0, 240, 255, 0.12)',
-            border: '1px solid rgba(0, 240, 255, 0.35)',
+            background: 'rgba(10, 132, 255, 0.16)',
+            border: '1px solid rgba(10, 132, 255, 0.4)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#00f0ff'
+            color: '#0A84FF'
           }}>
             <CloudRain size={16} />
           </div>
           <div>
-            <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#f1f5f9', letterSpacing: '0.02em' }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF', letterSpacing: '0.01em' }}>
               Environmental Intelligence
             </div>
-            <div style={{ fontSize: '9.5px', color: '#94a3b8', marginTop: '1px' }}>
+            <div style={{ fontSize: '10px', color: 'rgba(235, 235, 245, 0.60)', marginTop: '1px' }}>
               {blockLabel || 'Bengaluru Urban Corridor'} • WMS & Weather
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <button
             type="button"
             onClick={() => setIsCollapsed(prev => !prev)}
             className="gmaps-icon-btn"
-            style={{ width: '28px', height: '28px', color: '#94a3b8' }}
+            style={{ width: '28px', height: '28px', background: 'rgba(37, 37, 40, 0.85)', border: '1px solid #3A3A3C', color: '#FFFFFF' }}
             title={isCollapsed ? 'Expand Panel' : 'Collapse Panel'}
           >
             {isCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
@@ -205,7 +206,7 @@ export function EnvironmentalIntelPanel({
               type="button"
               onClick={onClose}
               className="gmaps-icon-btn"
-              style={{ width: '28px', height: '28px', color: '#94a3b8' }}
+              style={{ width: '28px', height: '28px', background: 'rgba(37, 37, 40, 0.85)', border: '1px solid #3A3A3C', color: '#FFFFFF' }}
               title="Close Panel"
             >
               <X size={14} />
@@ -215,9 +216,9 @@ export function EnvironmentalIntelPanel({
       </div>
 
       {!isCollapsed && (
-        <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '72vh', overflowY: 'auto' }}>
+        <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: 'calc(100vh - 310px)', overflowY: 'auto' }}>
           {/* Navigation Tabs */}
-          <div style={{ display: 'flex', gap: '4px', background: 'rgba(0, 0, 0, 0.25)', padding: '3px', borderRadius: '8px' }}>
+          <div style={{ display: 'flex', gap: '4px', background: '#2C2C2E', border: '1px solid #3A3A3C', padding: '3px', borderRadius: '10px' }}>
             {[
               { id: 'weather', label: 'Weather', icon: CloudRain },
               { id: 'terrain', label: 'Terrain', icon: Mountain },
@@ -238,12 +239,12 @@ export function EnvironmentalIntelPanel({
                     justifyContent: 'center',
                     gap: '4px',
                     padding: '6px 4px',
-                    borderRadius: '6px',
+                    borderRadius: '7px',
                     border: 'none',
-                    background: isActive ? 'rgba(0, 240, 255, 0.16)' : 'transparent',
-                    color: isActive ? '#00f0ff' : '#94a3b8',
+                    background: isActive ? '#0A84FF' : 'transparent',
+                    color: isActive ? '#FFFFFF' : 'rgba(235, 235, 245, 0.60)',
                     fontSize: '10.5px',
-                    fontWeight: isActive ? 700 : 500,
+                    fontWeight: isActive ? 600 : 500,
                     cursor: 'pointer',
                     transition: 'all 0.15s ease'
                   }}
@@ -278,68 +279,68 @@ export function EnvironmentalIntelPanel({
 
               {/* Weather Stats Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-                <div style={{ padding: '8px 10px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8ab4f8', fontSize: '10px' }}>
+                <div style={{ padding: '8px 10px', borderRadius: '12px', background: 'rgba(44, 44, 46, 0.7)', border: '1px solid #3A3A3C' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0A84FF', fontSize: '10px', fontWeight: 600 }}>
                     <Droplets size={13} />
                     <span>Rainfall Rate</span>
                   </div>
-                  <div style={{ fontSize: '16px', fontWeight: 800, color: '#f1f5f9', marginTop: '4px' }}>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#FFFFFF', marginTop: '4px' }}>
                     {currentWeather?.rainfall_rate_mm_hr !== null ? `${currentWeather?.rainfall_rate_mm_hr} mm/h` : '--'}
                   </div>
                 </div>
 
-                <div style={{ padding: '8px 10px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ffac33', fontSize: '10px' }}>
+                <div style={{ padding: '8px 10px', borderRadius: '12px', background: 'rgba(44, 44, 46, 0.7)', border: '1px solid #3A3A3C' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#FF9F0A', fontSize: '10px', fontWeight: 600 }}>
                     <Thermometer size={13} />
                     <span>Temperature</span>
                   </div>
-                  <div style={{ fontSize: '16px', fontWeight: 800, color: '#f1f5f9', marginTop: '4px' }}>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#FFFFFF', marginTop: '4px' }}>
                     {currentWeather?.temperature_c !== null ? `${currentWeather?.temperature_c}°C` : '--'}
                   </div>
                 </div>
 
-                <div style={{ padding: '8px 10px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#34d399', fontSize: '10px' }}>
+                <div style={{ padding: '8px 10px', borderRadius: '12px', background: 'rgba(44, 44, 46, 0.7)', border: '1px solid #3A3A3C' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#30D158', fontSize: '10px', fontWeight: 600 }}>
                     <Wind size={13} />
                     <span>Wind & Heading</span>
                   </div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#f1f5f9', marginTop: '4px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF', marginTop: '4px' }}>
                     {currentWeather?.wind_speed_kmh !== null ? `${currentWeather?.wind_speed_kmh} km/h ${currentWeather?.wind_direction_compass || ''}` : '--'}
                   </div>
                 </div>
 
-                <div style={{ padding: '8px 10px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#c084fc', fontSize: '10px' }}>
+                <div style={{ padding: '8px 10px', borderRadius: '12px', background: 'rgba(44, 44, 46, 0.7)', border: '1px solid #3A3A3C' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#BF5AF2', fontSize: '10px', fontWeight: 600 }}>
                     <Gauge size={13} />
                     <span>Surface Pressure</span>
                   </div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#f1f5f9', marginTop: '4px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF', marginTop: '4px' }}>
                     {currentWeather?.surface_pressure_hpa !== null ? `${currentWeather?.surface_pressure_hpa} hPa` : '--'}
                   </div>
                 </div>
               </div>
 
               {/* Forecast Overview Card */}
-              <div style={{ padding: '10px', borderRadius: '10px', background: 'rgba(0, 240, 255, 0.04)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
-                <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#00f0ff', marginBottom: '6px' }}>
+              <div style={{ padding: '10px 12px', borderRadius: '14px', background: '#2C2C2E', border: '1px solid #3A3A3C' }}>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: '#FFFFFF', marginBottom: '6px' }}>
                   Open-Meteo Short-Range Precipitation Forecast
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', textAlign: 'center', marginBottom: '8px' }}>
                   <div>
-                    <div style={{ fontSize: '9px', color: '#94a3b8' }}>Next 1 Hour</div>
-                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#f1f5f9' }}>
+                    <div style={{ fontSize: '9px', color: 'rgba(235, 235, 245, 0.60)' }}>Next 1 Hour</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF' }}>
                       {forecast?.next_1h_accumulation_mm ?? 0} mm
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '9px', color: '#94a3b8' }}>Next 3 Hours</div>
-                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#f1f5f9' }}>
+                    <div style={{ fontSize: '9px', color: 'rgba(235, 235, 245, 0.60)' }}>Next 3 Hours</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF' }}>
                       {forecast?.next_3h_accumulation_mm ?? 0} mm
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '9px', color: '#94a3b8' }}>Peak Rate</div>
-                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffac33' }}>
+                    <div style={{ fontSize: '9px', color: 'rgba(235, 235, 245, 0.60)' }}>Peak Rate</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#FF9F0A' }}>
                       {forecast?.next_3h_peak_rate_mm_hr ?? 0} mm/h
                     </div>
                   </div>
@@ -356,11 +357,11 @@ export function EnvironmentalIntelPanel({
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '4px',
-                      padding: '5px 8px',
-                      borderRadius: '6px',
-                      border: '1px solid rgba(138, 180, 248, 0.3)',
-                      background: 'rgba(138, 180, 248, 0.08)',
-                      color: '#8ab4f8',
+                      padding: '6px 8px',
+                      borderRadius: '8px',
+                      border: '1px solid #3A3A3C',
+                      background: 'rgba(10, 132, 255, 0.15)',
+                      color: '#0A84FF',
                       fontSize: '10px',
                       fontWeight: 600,
                       cursor: 'pointer'
@@ -378,11 +379,11 @@ export function EnvironmentalIntelPanel({
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '4px',
-                      padding: '5px 8px',
-                      borderRadius: '6px',
-                      border: '1px solid rgba(255, 172, 51, 0.3)',
-                      background: 'rgba(255, 172, 51, 0.08)',
-                      color: '#ffac33',
+                      padding: '6px 8px',
+                      borderRadius: '8px',
+                      border: '1px solid #3A3A3C',
+                      background: 'rgba(255, 159, 10, 0.15)',
+                      color: '#FF9F0A',
                       fontSize: '10px',
                       fontWeight: 600,
                       cursor: 'pointer'
@@ -393,7 +394,7 @@ export function EnvironmentalIntelPanel({
                   </button>
                 </div>
                 {forecastSyncNotice && (
-                  <div style={{ fontSize: '9.5px', color: '#81c995', marginTop: '6px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '9.5px', color: '#30D158', marginTop: '6px', textAlign: 'center' }}>
                     {forecastSyncNotice}
                   </div>
                 )}
@@ -405,7 +406,7 @@ export function EnvironmentalIntelPanel({
           {activeTab === 'terrain' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#f1f5f9' }}>Topographic Elevation Sampling</span>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: '#FFFFFF' }}>Topographic Elevation Sampling</span>
                 {renderStatusBadge(terrainStats?.elevationQuality === 'ACTUAL_TERRAIN' ? 'LIVE' : 'ESTIMATED')}
               </div>
 
@@ -413,33 +414,33 @@ export function EnvironmentalIntelPanel({
                 display: 'grid',
                 gridTemplateColumns: 'repeat(3, 1fr)',
                 gap: '8px',
-                padding: '10px',
-                borderRadius: '8px',
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
+                padding: '10px 12px',
+                borderRadius: '14px',
+                background: '#2C2C2E',
+                border: '1px solid #3A3A3C',
                 textAlign: 'center'
               }}>
                 <div>
-                  <div style={{ fontSize: '9px', color: '#94a3b8' }}>Min Elevation</div>
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#81c995', marginTop: '2px' }}>
+                  <div style={{ fontSize: '9px', color: 'rgba(235, 235, 245, 0.60)' }}>Min Elevation</div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#30D158', marginTop: '2px' }}>
                     {terrainStats?.minElevation ? `${terrainStats.minElevation}m` : '--'}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '9px', color: '#94a3b8' }}>Max Elevation</div>
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#f1f5f9', marginTop: '2px' }}>
+                  <div style={{ fontSize: '9px', color: 'rgba(235, 235, 245, 0.60)' }}>Max Elevation</div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginTop: '2px' }}>
                     {terrainStats?.maxElevation ? `${terrainStats.maxElevation}m` : '--'}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '9px', color: '#94a3b8' }}>Slope Relief</div>
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#8ab4f8', marginTop: '2px' }}>
+                  <div style={{ fontSize: '9px', color: 'rgba(235, 235, 245, 0.60)' }}>Slope Relief</div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#0A84FF', marginTop: '2px' }}>
                     {terrainStats?.elevationRange ? `${terrainStats.elevationRange}m` : '--'}
                   </div>
                 </div>
               </div>
 
-              <div style={{ fontSize: '10px', color: '#94a3b8', lineHeight: 1.4 }}>
+              <div style={{ fontSize: '10px', color: 'rgba(235, 235, 245, 0.60)', lineHeight: 1.4 }}>
                 Real-time 16×16 elevation DEM grid sampled directly from Mapbox Terrain RGB. Highlights natural gravity sinks, depression basins, and urban surface slopes.
               </div>
             </div>
@@ -448,7 +449,7 @@ export function EnvironmentalIntelPanel({
           {/* TAB 3: SATELLITE WMS & OSM DRAINAGE */}
           {activeTab === 'geospatial' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#f1f5f9' }}>
+              <div style={{ fontSize: '11px', fontWeight: 600, color: '#FFFFFF' }}>
                 ISRO NRSC Bhuvan WMS Overlays
               </div>
 
@@ -457,14 +458,14 @@ export function EnvironmentalIntelPanel({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '8px 10px',
-                borderRadius: '8px',
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.06)'
+                padding: '10px 12px',
+                borderRadius: '12px',
+                background: '#2C2C2E',
+                border: '1px solid #3A3A3C'
               }}>
                 <div>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#f1f5f9' }}>Water Bodies & Hydrology</div>
-                  <div style={{ fontSize: '9px', color: '#94a3b8' }}>ISRO/NRSC satellite DEM depressions</div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#FFFFFF' }}>Water Bodies & Hydrology</div>
+                  <div style={{ fontSize: '9px', color: 'rgba(235, 235, 245, 0.60)' }}>ISRO/NRSC satellite DEM depressions</div>
                 </div>
                 <button
                   type="button"
@@ -473,11 +474,11 @@ export function EnvironmentalIntelPanel({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
-                    padding: '4px 8px',
-                    borderRadius: '6px',
-                    border: `1px solid ${bhuvanLayersEnabled?.waterbodies ? '#00f0ff' : 'rgba(255, 255, 255, 0.1)'}`,
-                    background: bhuvanLayersEnabled?.waterbodies ? 'rgba(0, 240, 255, 0.16)' : 'rgba(255, 255, 255, 0.04)',
-                    color: bhuvanLayersEnabled?.waterbodies ? '#00f0ff' : '#94a3b8',
+                    padding: '5px 10px',
+                    borderRadius: '8px',
+                    border: `1px solid ${bhuvanLayersEnabled?.waterbodies ? '#0A84FF' : '#3A3A3C'}`,
+                    background: bhuvanLayersEnabled?.waterbodies ? '#0A84FF' : 'rgba(255, 255, 255, 0.05)',
+                    color: bhuvanLayersEnabled?.waterbodies ? '#FFFFFF' : 'rgba(235, 235, 245, 0.60)',
                     fontSize: '10px',
                     fontWeight: 600,
                     cursor: 'pointer'
@@ -493,14 +494,14 @@ export function EnvironmentalIntelPanel({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '8px 10px',
-                borderRadius: '8px',
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.06)'
+                padding: '10px 12px',
+                borderRadius: '12px',
+                background: '#2C2C2E',
+                border: '1px solid #3A3A3C'
               }}>
                 <div>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#f1f5f9' }}>Watershed Basins & Drainage</div>
-                  <div style={{ fontSize: '9px', color: '#94a3b8' }}>National macro-drainage corridors</div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#FFFFFF' }}>Watershed Basins & Drainage</div>
+                  <div style={{ fontSize: '9px', color: 'rgba(235, 235, 245, 0.60)' }}>National macro-drainage corridors</div>
                 </div>
                 <button
                   type="button"
@@ -509,11 +510,11 @@ export function EnvironmentalIntelPanel({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
-                    padding: '4px 8px',
-                    borderRadius: '6px',
-                    border: `1px solid ${bhuvanLayersEnabled?.watershed ? '#00f0ff' : 'rgba(255, 255, 255, 0.1)'}`,
-                    background: bhuvanLayersEnabled?.watershed ? 'rgba(0, 240, 255, 0.16)' : 'rgba(255, 255, 255, 0.04)',
-                    color: bhuvanLayersEnabled?.watershed ? '#00f0ff' : '#94a3b8',
+                    padding: '5px 10px',
+                    borderRadius: '8px',
+                    border: `1px solid ${bhuvanLayersEnabled?.watershed ? '#0A84FF' : '#3A3A3C'}`,
+                    background: bhuvanLayersEnabled?.watershed ? '#0A84FF' : 'rgba(255, 255, 255, 0.05)',
+                    color: bhuvanLayersEnabled?.watershed ? '#FFFFFF' : 'rgba(235, 235, 245, 0.60)',
                     fontSize: '10px',
                     fontWeight: 600,
                     cursor: 'pointer'
@@ -529,15 +530,15 @@ export function EnvironmentalIntelPanel({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '8px 10px',
-                borderRadius: '8px',
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
+                padding: '10px 12px',
+                borderRadius: '12px',
+                background: '#2C2C2E',
+                border: '1px solid #3A3A3C',
                 marginTop: '4px'
               }}>
                 <div>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#f1f5f9' }}>OSM Micro-Drainage & Culverts</div>
-                  <div style={{ fontSize: '9px', color: '#94a3b8' }}>OpenStreetMap Overpass alignment</div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#FFFFFF' }}>OSM Micro-Drainage & Culverts</div>
+                  <div style={{ fontSize: '9px', color: 'rgba(235, 235, 245, 0.60)' }}>OpenStreetMap Overpass alignment</div>
                 </div>
                 <button
                   type="button"
@@ -546,11 +547,11 @@ export function EnvironmentalIntelPanel({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
-                    padding: '4px 8px',
-                    borderRadius: '6px',
-                    border: `1px solid ${showOsmDrainage ? '#34d399' : 'rgba(255, 255, 255, 0.1)'}`,
-                    background: showOsmDrainage ? 'rgba(52, 211, 153, 0.16)' : 'rgba(255, 255, 255, 0.04)',
-                    color: showOsmDrainage ? '#34d399' : '#94a3b8',
+                    padding: '5px 10px',
+                    borderRadius: '8px',
+                    border: `1px solid ${showOsmDrainage ? '#30D158' : '#3A3A3C'}`,
+                    background: showOsmDrainage ? '#30D158' : 'rgba(255, 255, 255, 0.05)',
+                    color: showOsmDrainage ? '#FFFFFF' : 'rgba(235, 235, 245, 0.60)',
                     fontSize: '10px',
                     fontWeight: 600,
                     cursor: 'pointer'
@@ -566,7 +567,7 @@ export function EnvironmentalIntelPanel({
           {/* TAB 4: DATA SOURCES MATRIX */}
           {activeTab === 'sources' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ fontSize: '10.5px', color: '#94a3b8' }}>
+              <div style={{ fontSize: '10.5px', color: 'rgba(235, 235, 245, 0.60)' }}>
                 Operational integrity & data freshness across active providers:
               </div>
 
@@ -599,20 +600,20 @@ export function EnvironmentalIntelPanel({
                 <div
                   key={idx}
                   style={{
-                    padding: '8px 10px',
-                    borderRadius: '6px',
-                    background: 'rgba(255, 255, 255, 0.02)',
-                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                    padding: '8px 12px',
+                    borderRadius: '12px',
+                    background: '#2C2C2E',
+                    border: '1px solid #3A3A3C',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#e8eaed' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: '#FFFFFF' }}>
                       {src.name}
                     </div>
-                    <div style={{ fontSize: '9px', color: '#80868b', marginTop: '1px' }}>
+                    <div style={{ fontSize: '9px', color: 'rgba(235, 235, 245, 0.60)', marginTop: '1px' }}>
                       {src.type} • {src.time}
                     </div>
                   </div>
@@ -627,10 +628,10 @@ export function EnvironmentalIntelPanel({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            paddingTop: '6px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.06)',
-            fontSize: '9px',
-            color: '#80868b'
+            paddingTop: '8px',
+            borderTop: '1px solid #3A3A3C',
+            fontSize: '9.5px',
+            color: 'rgba(235, 235, 245, 0.60)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Clock size={10} />

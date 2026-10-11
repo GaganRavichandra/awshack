@@ -316,18 +316,18 @@ export function GoogleMapsSearchBar({
             display: 'flex',
             alignItems: 'center',
             height: '44px',
-            padding: '0 10px',
-            background: 'rgba(20, 24, 32, 0.94)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            borderRadius: '12px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 240, 255, 0.05)',
+            padding: '0 12px',
+            background: 'rgba(28, 28, 30, 0.94)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderRadius: '16px',
+            border: '1px solid #3A3A3C',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.55)',
             position: 'relative',
             transition: 'border-color 0.18s ease, box-shadow 0.18s ease'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', paddingRight: '8px', color: '#8ab4f8' }}>
+          <div style={{ display: 'flex', alignItems: 'center', paddingRight: '8px', color: '#FFFFFF' }}>
             <Search size={17} />
           </div>
 
@@ -351,7 +351,7 @@ export function GoogleMapsSearchBar({
               flex: 1,
               background: 'transparent',
               border: 'none',
-              color: '#f8fafc',
+              color: '#FFFFFF',
               fontSize: '13px',
               fontWeight: 500,
               outline: 'none',
@@ -368,7 +368,7 @@ export function GoogleMapsSearchBar({
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: '#94a3b8',
+                color: 'rgba(235, 235, 245, 0.60)',
                 cursor: 'pointer',
                 padding: '4px',
                 display: 'flex',
@@ -377,8 +377,8 @@ export function GoogleMapsSearchBar({
                 borderRadius: '50%',
                 transition: 'color 0.15s'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#ffffff'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#FFFFFF'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(235, 235, 245, 0.60)'; }}
             >
               <X size={15} />
             </button>
@@ -386,7 +386,7 @@ export function GoogleMapsSearchBar({
 
           {isLoading && (
             <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '4px' }}>
-              <Loader2 size={16} className="animate-spin" style={{ color: '#8ab4f8' }} />
+              <Loader2 size={16} className="animate-spin" style={{ color: '#0A84FF' }} />
             </div>
           )}
 
@@ -399,12 +399,12 @@ export function GoogleMapsSearchBar({
                 top: '50px',
                 left: 0,
                 right: 0,
-                background: 'rgba(20, 24, 32, 0.98)',
+                background: 'rgba(28, 28, 30, 0.98)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
-                borderRadius: '12px',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                boxShadow: '0 16px 40px rgba(0, 0, 0, 0.75), 0 0 1px rgba(0, 240, 255, 0.25)',
+                borderRadius: '16px',
+                border: '1px solid #3A3A3C',
+                boxShadow: '0 16px 40px rgba(0, 0, 0, 0.75)',
                 maxHeight: '320px',
                 overflowY: 'auto',
                 zIndex: 60
@@ -417,13 +417,13 @@ export function GoogleMapsSearchBar({
                 const isHighlighted = idx === highlightedIndex;
 
                 const badgeColor =
-                  category === 'DRAIN' ? '#00f0ff' :
-                  category === 'HOTSPOT' ? '#f59e0b' :
-                  category === 'WARD' ? '#10b981' : '#8ab4f8';
+                  category === 'DRAIN' ? '#0A84FF' :
+                  category === 'HOTSPOT' ? '#FF9F0A' :
+                  category === 'WARD' ? '#30D158' : '#0A84FF';
                 const badgeBg =
-                  category === 'DRAIN' ? 'rgba(0, 240, 255, 0.12)' :
-                  category === 'HOTSPOT' ? 'rgba(245, 158, 11, 0.14)' :
-                  category === 'WARD' ? 'rgba(16, 185, 129, 0.14)' : 'rgba(138, 180, 248, 0.12)';
+                  category === 'DRAIN' ? 'rgba(10, 132, 255, 0.16)' :
+                  category === 'HOTSPOT' ? 'rgba(255, 159, 10, 0.16)' :
+                  category === 'WARD' ? 'rgba(48, 209, 88, 0.16)' : 'rgba(10, 132, 255, 0.16)';
 
                 return (
                   <div
@@ -437,21 +437,21 @@ export function GoogleMapsSearchBar({
                       gap: '10px',
                       padding: '10px 14px',
                       cursor: 'pointer',
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
-                      background: isHighlighted ? 'rgba(0, 240, 255, 0.1)' : 'transparent',
+                      borderBottom: '1px solid #3A3A3C',
+                      background: isHighlighted ? 'rgba(10, 132, 255, 0.15)' : 'transparent',
                       transition: 'background 0.15s ease'
                     }}
                   >
                     {category === 'DRAIN' ? (
-                      <Droplets size={16} style={{ color: '#00f0ff', flexShrink: 0 }} />
+                      <Droplets size={16} style={{ color: '#0A84FF', flexShrink: 0 }} />
                     ) : category === 'HOTSPOT' ? (
-                      <AlertTriangle size={16} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                      <AlertTriangle size={16} style={{ color: '#FF9F0A', flexShrink: 0 }} />
                     ) : (
-                      <MapPin size={16} style={{ color: '#8ab4f8', flexShrink: 0 }} />
+                      <MapPin size={16} style={{ color: '#0A84FF', flexShrink: 0 }} />
                     )}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#e8eaed', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {mainText}
                         </span>
                         <span style={{
@@ -459,18 +459,18 @@ export function GoogleMapsSearchBar({
                           fontWeight: 700,
                           color: badgeColor,
                           background: badgeBg,
-                          padding: '1px 5px',
-                          borderRadius: '3px',
+                          padding: '2px 6px',
+                          borderRadius: '6px',
                           letterSpacing: '0.04em'
                         }}>
                           {category}
                         </span>
                       </div>
-                      <div style={{ fontSize: '11px', color: '#9aa0a6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '1px' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(235, 235, 245, 0.60)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '1px' }}>
                         {secondaryText}
                       </div>
                     </div>
-                    <ArrowRight size={13} style={{ color: isHighlighted ? '#00f0ff' : '#5f6368', flexShrink: 0 }} />
+                    <ArrowRight size={13} style={{ color: isHighlighted ? '#0A84FF' : 'rgba(235, 235, 245, 0.40)', flexShrink: 0 }} />
                   </div>
                 );
               })}
@@ -478,7 +478,7 @@ export function GoogleMapsSearchBar({
           )}
         </div>
 
-        {/* 1B. STANDALONE LOCATE ME BUTTON */}
+        {/* 1B. STANDALONE LOCATE ME BUTTON (Apple Maps Circular Control) */}
         <button
           type="button"
           onClick={onLocateMe}
@@ -491,31 +491,29 @@ export function GoogleMapsSearchBar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(20, 24, 32, 0.94)',
+            background: 'rgba(37, 37, 40, 0.85)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
-            borderRadius: '12px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            color: '#8ab4f8',
+            borderRadius: '50%',
+            border: '1px solid #3A3A3C',
+            color: '#FFFFFF',
             cursor: 'pointer',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
             transition: 'all 0.18s ease'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(138, 180, 248, 0.15)';
-            e.currentTarget.style.borderColor = 'rgba(138, 180, 248, 0.4)';
-            e.currentTarget.style.color = '#ffffff';
+            e.currentTarget.style.background = 'rgba(58, 58, 60, 0.9)';
+            e.currentTarget.style.color = '#0A84FF';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(20, 24, 32, 0.94)';
-            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-            e.currentTarget.style.color = '#8ab4f8';
+            e.currentTarget.style.background = 'rgba(37, 37, 40, 0.85)';
+            e.currentTarget.style.color = '#FFFFFF';
           }}
         >
           <Navigation size={17} />
         </button>
 
-        {/* 1C. STANDALONE SIMULATE ACTION PILL */}
+        {/* 1C. STANDALONE SIMULATE ACTION PILL (Primary Action Button #0A84FF) */}
         <button
           type="button"
           onClick={onToggleSimulate}
@@ -526,40 +524,34 @@ export function GoogleMapsSearchBar({
             alignItems: 'center',
             gap: '6px',
             padding: '0 16px',
-            borderRadius: '12px',
+            borderRadius: '14px',
             background: isSimulateMode
-              ? 'linear-gradient(135deg, #00f0ff 0%, #0077b6 100%)'
-              : 'rgba(20, 24, 32, 0.94)',
+              ? '#0071E3'
+              : '#0A84FF',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
-            border: `1px solid ${isSimulateMode ? '#00f0ff' : 'rgba(0, 240, 255, 0.35)'}`,
-            color: isSimulateMode ? '#05080c' : '#00f0ff',
-            fontWeight: 800,
-            fontSize: '11.5px',
+            border: isSimulateMode ? '1px solid #0071E3' : '1px solid #0A84FF',
+            color: '#FFFFFF',
+            fontWeight: 600,
+            fontSize: '12px',
             letterSpacing: '0.04em',
             cursor: 'pointer',
             whiteSpace: 'nowrap',
             boxShadow: isSimulateMode
-              ? '0 0 20px rgba(0, 240, 255, 0.5), 0 8px 32px rgba(0, 0, 0, 0.5)'
-              : '0 8px 32px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 240, 255, 0.08)',
+              ? '0 0 16px rgba(10, 132, 255, 0.6), 0 8px 32px rgba(0, 0, 0, 0.5)'
+              : '0 4px 16px rgba(10, 132, 255, 0.35)',
             transition: 'all 0.2s ease'
           }}
           onMouseEnter={(e) => {
-            if (!isSimulateMode) {
-              e.currentTarget.style.background = 'rgba(0, 240, 255, 0.14)';
-              e.currentTarget.style.borderColor = 'rgba(0, 240, 255, 0.6)';
-              e.currentTarget.style.boxShadow = '0 0 16px rgba(0, 240, 255, 0.35), 0 8px 32px rgba(0, 0, 0, 0.6)';
-            }
+            e.currentTarget.style.background = '#0071E3';
+            e.currentTarget.style.borderColor = '#0071E3';
           }}
           onMouseLeave={(e) => {
-            if (!isSimulateMode) {
-              e.currentTarget.style.background = 'rgba(20, 24, 32, 0.94)';
-              e.currentTarget.style.borderColor = 'rgba(0, 240, 255, 0.35)';
-              e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 240, 255, 0.08)';
-            }
+            e.currentTarget.style.background = isSimulateMode ? '#0071E3' : '#0A84FF';
+            e.currentTarget.style.borderColor = isSimulateMode ? '#0071E3' : '#0A84FF';
           }}
         >
-          <Play size={13} fill={isSimulateMode ? '#05080c' : '#00f0ff'} />
+          <Play size={13} fill="#FFFFFF" />
           <span>{isSimulateMode ? 'SIMULATING' : 'SIMULATE'}</span>
         </button>
       </div>
@@ -584,29 +576,29 @@ export function GoogleMapsSearchBar({
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '5px 12px',
-            background: isToolsOpen ? 'rgba(20, 24, 32, 0.94)' : 'rgba(20, 24, 32, 0.88)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            borderRadius: '20px',
-            border: isToolsOpen ? '1px solid rgba(0, 240, 255, 0.35)' : '1px solid rgba(255, 255, 255, 0.12)',
-            color: isToolsOpen ? '#00f0ff' : '#cbd5e1',
+            padding: '6px 14px',
+            background: isToolsOpen ? '#2C2C2E' : 'rgba(37, 37, 40, 0.85)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderRadius: '16px',
+            border: '1px solid #3A3A3C',
+            color: '#FFFFFF',
             fontSize: '11px',
-            fontWeight: 700,
+            fontWeight: 600,
             cursor: 'pointer',
             boxShadow: '0 4px 14px rgba(0, 0, 0, 0.45)',
             transition: 'all 0.18s ease'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'rgba(0, 240, 255, 0.5)';
-            e.currentTarget.style.color = '#00f0ff';
+            e.currentTarget.style.borderColor = '#0A84FF';
+            e.currentTarget.style.color = '#0A84FF';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = isToolsOpen ? 'rgba(0, 240, 255, 0.35)' : 'rgba(255, 255, 255, 0.12)';
-            e.currentTarget.style.color = isToolsOpen ? '#00f0ff' : '#cbd5e1';
+            e.currentTarget.style.borderColor = '#3A3A3C';
+            e.currentTarget.style.color = '#FFFFFF';
           }}
         >
-          <Sliders size={13} style={{ color: isToolsOpen ? '#00f0ff' : '#8ab4f8' }} />
+          <Sliders size={13} style={{ color: '#0A84FF' }} />
           <span>Tools & Overrides</span>
           {isToolsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
         </button>
@@ -617,23 +609,23 @@ export function GoogleMapsSearchBar({
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '4px',
-              padding: '8px',
-              background: 'rgba(18, 22, 30, 0.95)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              borderRadius: '12px',
-              border: '1px solid rgba(255, 255, 255, 0.09)',
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.55), 0 0 1px rgba(0, 240, 255, 0.2)',
+              gap: '6px',
+              padding: '10px',
+              background: 'rgba(28, 28, 30, 0.96)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              borderRadius: '16px',
+              border: '1px solid #3A3A3C',
+              boxShadow: '0 12px 36px rgba(0, 0, 0, 0.65)',
               width: '100%',
               animation: 'fadeInSlideDown 0.2s ease-out'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 6px 4px 6px', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', marginBottom: '2px' }}>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 6px 6px 6px', borderBottom: '1px solid #3A3A3C', marginBottom: '2px' }}>
+              <span style={{ fontSize: '10px', fontWeight: 600, color: 'rgba(235, 235, 245, 0.60)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Digital Twin Quick Actions
               </span>
-              <span style={{ fontSize: '9.5px', color: '#64748b' }}>Primary Controls</span>
+              <span style={{ fontSize: '9.5px', color: 'rgba(235, 235, 245, 0.40)' }}>Primary Controls</span>
             </div>
 
             {/* Action 1: Rainwater Harvesting Potential */}
@@ -647,11 +639,11 @@ export function GoogleMapsSearchBar({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '7px 10px',
-                borderRadius: '8px',
-                border: `1px solid ${isRWHAvailable ? 'rgba(0, 240, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)'}`,
-                background: isRWHAvailable ? 'rgba(0, 240, 255, 0.06)' : 'rgba(255, 255, 255, 0.02)',
-                color: isRWHAvailable ? '#38bdf8' : '#64748b',
+                padding: '8px 10px',
+                borderRadius: '10px',
+                border: '1px solid #3A3A3C',
+                background: isRWHAvailable ? '#2C2C2E' : 'rgba(44, 44, 46, 0.5)',
+                color: isRWHAvailable ? '#FFFFFF' : 'rgba(235, 235, 245, 0.40)',
                 fontSize: '11.5px',
                 fontWeight: 600,
                 cursor: isRWHAvailable ? 'pointer' : 'not-allowed',
@@ -660,22 +652,22 @@ export function GoogleMapsSearchBar({
               }}
               onMouseEnter={(e) => {
                 if (isRWHAvailable) {
-                  e.currentTarget.style.background = 'rgba(0, 240, 255, 0.12)';
-                  e.currentTarget.style.borderColor = 'rgba(0, 240, 255, 0.4)';
+                  e.currentTarget.style.background = 'rgba(58, 58, 60, 0.9)';
+                  e.currentTarget.style.borderColor = '#0A84FF';
                 }
               }}
               onMouseLeave={(e) => {
                 if (isRWHAvailable) {
-                  e.currentTarget.style.background = 'rgba(0, 240, 255, 0.06)';
-                  e.currentTarget.style.borderColor = 'rgba(0, 240, 255, 0.2)';
+                  e.currentTarget.style.background = '#2C2C2E';
+                  e.currentTarget.style.borderColor = '#3A3A3C';
                 }
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Droplets size={14} style={{ color: isRWHAvailable ? '#38bdf8' : '#64748b' }} />
+                <Droplets size={14} style={{ color: isRWHAvailable ? '#0A84FF' : 'rgba(235, 235, 245, 0.40)' }} />
                 <span>RWH Potential</span>
               </div>
-              <span style={{ fontSize: '9.5px', color: isRWHAvailable ? '#38bdf8' : '#ef4444', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(0, 0, 0, 0.25)' }}>
+              <span style={{ fontSize: '9.5px', color: isRWHAvailable ? '#0A84FF' : '#FF453A', fontWeight: 600, padding: '2px 6px', borderRadius: '6px', background: 'rgba(0, 0, 0, 0.3)' }}>
                 {isRWHAvailable ? 'Rooftop Model' : '>50mm Paused'}
               </span>
             </button>
@@ -690,29 +682,29 @@ export function GoogleMapsSearchBar({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '7px 10px',
-                borderRadius: '8px',
-                border: `1px solid ${isOrbiting ? '#00f0ff' : 'rgba(255, 255, 255, 0.08)'}`,
-                background: isOrbiting ? 'rgba(0, 240, 255, 0.18)' : 'rgba(255, 255, 255, 0.03)',
-                color: isOrbiting ? '#00f0ff' : '#cbd5e1',
+                padding: '8px 10px',
+                borderRadius: '10px',
+                border: `1px solid ${isOrbiting ? '#0A84FF' : '#3A3A3C'}`,
+                background: isOrbiting ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E',
+                color: '#FFFFFF',
                 fontSize: '11.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                boxShadow: isOrbiting ? '0 0 12px rgba(0, 240, 255, 0.3)' : 'none',
+                boxShadow: isOrbiting ? '0 0 12px rgba(10, 132, 255, 0.35)' : 'none',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = isOrbiting ? 'rgba(0, 240, 255, 0.24)' : 'rgba(255, 255, 255, 0.08)';
+                e.currentTarget.style.background = isOrbiting ? 'rgba(10, 132, 255, 0.28)' : 'rgba(58, 58, 60, 0.9)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = isOrbiting ? 'rgba(0, 240, 255, 0.18)' : 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.background = isOrbiting ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <RotateCcw size={14} style={{ transform: isOrbiting ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: isOrbiting ? '#00f0ff' : '#cbd5e1' }} />
+                <RotateCcw size={14} style={{ transform: isOrbiting ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: isOrbiting ? '#0A84FF' : '#FFFFFF' }} />
                 <span>360° View</span>
               </div>
-              <span style={{ fontSize: '9.5px', color: isOrbiting ? '#00f0ff' : '#94a3b8', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(0, 0, 0, 0.25)' }}>
+              <span style={{ fontSize: '9.5px', color: isOrbiting ? '#0A84FF' : 'rgba(235, 235, 245, 0.60)', fontWeight: 600, padding: '2px 6px', borderRadius: '6px', background: 'rgba(0, 0, 0, 0.3)' }}>
                 {isOrbiting ? 'Active Orbit' : 'Pitch & Yaw'}
               </span>
             </button>
@@ -727,28 +719,28 @@ export function GoogleMapsSearchBar({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '7px 10px',
-                borderRadius: '8px',
-                border: `1px solid ${show3DBuildings ? 'rgba(138, 180, 248, 0.3)' : 'rgba(255, 255, 255, 0.08)'}`,
-                background: show3DBuildings ? 'rgba(138, 180, 248, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-                color: show3DBuildings ? '#8ab4f8' : '#94a3b8',
+                padding: '8px 10px',
+                borderRadius: '10px',
+                border: `1px solid ${show3DBuildings ? '#0A84FF' : '#3A3A3C'}`,
+                background: show3DBuildings ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E',
+                color: '#FFFFFF',
                 fontSize: '11.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = show3DBuildings ? 'rgba(138, 180, 248, 0.18)' : 'rgba(255, 255, 255, 0.08)';
+                e.currentTarget.style.background = show3DBuildings ? 'rgba(10, 132, 255, 0.28)' : 'rgba(58, 58, 60, 0.9)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = show3DBuildings ? 'rgba(138, 180, 248, 0.1)' : 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.background = show3DBuildings ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Building2 size={14} style={{ color: show3DBuildings ? '#8ab4f8' : '#94a3b8' }} />
+                <Building2 size={14} style={{ color: show3DBuildings ? '#0A84FF' : '#FFFFFF' }} />
                 <span>3D Buildings</span>
               </div>
-              <span style={{ fontSize: '9.5px', color: show3DBuildings ? '#8ab4f8' : '#64748b', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(0, 0, 0, 0.25)' }}>
+              <span style={{ fontSize: '9.5px', color: show3DBuildings ? '#0A84FF' : 'rgba(235, 235, 245, 0.60)', fontWeight: 600, padding: '2px 6px', borderRadius: '6px', background: 'rgba(0, 0, 0, 0.3)' }}>
                 {show3DBuildings ? 'Extruded' : 'Off'}
               </span>
             </button>
@@ -763,38 +755,38 @@ export function GoogleMapsSearchBar({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '7px 10px',
-                borderRadius: '8px',
-                border: `1px solid ${isTopView ? 'rgba(0, 240, 255, 0.35)' : 'rgba(168, 85, 247, 0.3)'}`,
-                background: isTopView ? 'rgba(0, 240, 255, 0.12)' : 'rgba(168, 85, 247, 0.08)',
-                color: isTopView ? '#00f0ff' : '#c084fc',
+                padding: '8px 10px',
+                borderRadius: '10px',
+                border: `1px solid ${isTopView ? '#0A84FF' : '#3A3A3C'}`,
+                background: isTopView ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E',
+                color: '#FFFFFF',
                 fontSize: '11.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = isTopView ? 'rgba(0, 240, 255, 0.2)' : 'rgba(168, 85, 247, 0.16)';
+                e.currentTarget.style.background = isTopView ? 'rgba(10, 132, 255, 0.28)' : 'rgba(58, 58, 60, 0.9)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = isTopView ? 'rgba(0, 240, 255, 0.12)' : 'rgba(168, 85, 247, 0.08)';
+                e.currentTarget.style.background = isTopView ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {isTopView ? (
-                  <Compass size={14} style={{ color: '#00f0ff' }} />
+                  <Compass size={14} style={{ color: '#0A84FF' }} />
                 ) : (
-                  <Layers size={14} style={{ color: '#c084fc' }} />
+                  <Layers size={14} style={{ color: '#FFFFFF' }} />
                 )}
                 <span>{isTopView ? '🗺️ Top View' : '📐 Angled View'}</span>
               </div>
               <span style={{
                 fontSize: '9.5px',
-                color: isTopView ? '#00f0ff' : '#c084fc',
-                fontWeight: 700,
+                color: isTopView ? '#0A84FF' : 'rgba(235, 235, 245, 0.60)',
+                fontWeight: 600,
                 padding: '2px 6px',
-                borderRadius: '4px',
-                background: 'rgba(0, 0, 0, 0.25)'
+                borderRadius: '6px',
+                background: 'rgba(0, 0, 0, 0.3)'
               }}>
                 {isTopView ? '2D Overhead' : '3D Tilt'}
               </span>
@@ -810,30 +802,30 @@ export function GoogleMapsSearchBar({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '7px 10px',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 172, 51, 0.3)',
-                background: 'rgba(255, 172, 51, 0.08)',
-                color: '#ffac33',
+                padding: '8px 10px',
+                borderRadius: '10px',
+                border: '1px solid #3A3A3C',
+                background: '#2C2C2E',
+                color: '#FFFFFF',
                 fontSize: '11.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 172, 51, 0.16)';
-                e.currentTarget.style.borderColor = 'rgba(255, 172, 51, 0.5)';
+                e.currentTarget.style.background = 'rgba(58, 58, 60, 0.9)';
+                e.currentTarget.style.borderColor = '#FF9F0A';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 172, 51, 0.08)';
-                e.currentTarget.style.borderColor = 'rgba(255, 172, 51, 0.3)';
+                e.currentTarget.style.background = '#2C2C2E';
+                e.currentTarget.style.borderColor = '#3A3A3C';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Zap size={14} style={{ color: '#ffac33' }} />
+                <Zap size={14} style={{ color: '#FF9F0A' }} />
                 <span>Demo Presets</span>
               </div>
-              <span style={{ fontSize: '9.5px', color: '#ffac33', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(0, 0, 0, 0.25)' }}>
+              <span style={{ fontSize: '9.5px', color: '#FF9F0A', fontWeight: 600, padding: '2px 6px', borderRadius: '6px', background: 'rgba(0, 0, 0, 0.3)' }}>
                 Monsoon Scenarios
               </span>
             </button>
@@ -848,30 +840,30 @@ export function GoogleMapsSearchBar({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '7px 10px',
-                borderRadius: '8px',
-                border: '1px solid rgba(239, 68, 68, 0.25)',
-                background: 'rgba(239, 68, 68, 0.06)',
-                color: '#f87171',
+                padding: '8px 10px',
+                borderRadius: '10px',
+                border: '1px solid #3A3A3C',
+                background: '#2C2C2E',
+                color: '#FFFFFF',
                 fontSize: '11.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.14)';
-                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.45)';
+                e.currentTarget.style.background = 'rgba(58, 58, 60, 0.9)';
+                e.currentTarget.style.borderColor = '#FF453A';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.06)';
-                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.25)';
+                e.currentTarget.style.background = '#2C2C2E';
+                e.currentTarget.style.borderColor = '#3A3A3C';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldAlert size={14} style={{ color: '#f87171' }} />
+                <ShieldAlert size={14} style={{ color: '#FF453A' }} />
                 <span>Citizen Report</span>
               </div>
-              <span style={{ fontSize: '9.5px', color: '#f87171', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(0, 0, 0, 0.25)' }}>
+              <span style={{ fontSize: '9.5px', color: '#FF453A', fontWeight: 600, padding: '2px 6px', borderRadius: '6px', background: 'rgba(0, 0, 0, 0.3)' }}>
                 Drain Audit
               </span>
             </button>
@@ -886,37 +878,35 @@ export function GoogleMapsSearchBar({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '7px 10px',
-                borderRadius: '8px',
-                border: `1px solid ${isRoutePlannerOpen ? '#45d6c5' : 'rgba(69, 214, 197, 0.25)'}`,
-                background: isRoutePlannerOpen ? 'rgba(69, 214, 197, 0.18)' : 'rgba(69, 214, 197, 0.06)',
-                color: isRoutePlannerOpen ? '#45d6c5' : '#9cf0dd',
+                padding: '8px 10px',
+                borderRadius: '10px',
+                border: `1px solid ${isRoutePlannerOpen ? '#30D158' : '#3A3A3C'}`,
+                background: isRoutePlannerOpen ? 'rgba(48, 209, 88, 0.2)' : '#2C2C2E',
+                color: '#FFFFFF',
                 fontSize: '11.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                boxShadow: isRoutePlannerOpen ? '0 0 12px rgba(69, 214, 197, 0.3)' : 'none',
+                boxShadow: isRoutePlannerOpen ? '0 0 12px rgba(48, 209, 88, 0.35)' : 'none',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = isRoutePlannerOpen ? 'rgba(69, 214, 197, 0.24)' : 'rgba(69, 214, 197, 0.14)';
-                e.currentTarget.style.borderColor = 'rgba(69, 214, 197, 0.5)';
+                e.currentTarget.style.background = isRoutePlannerOpen ? 'rgba(48, 209, 88, 0.28)' : 'rgba(58, 58, 60, 0.9)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = isRoutePlannerOpen ? 'rgba(69, 214, 197, 0.18)' : 'rgba(69, 214, 197, 0.06)';
-                e.currentTarget.style.borderColor = isRoutePlannerOpen ? '#45d6c5' : 'rgba(69, 214, 197, 0.25)';
+                e.currentTarget.style.background = isRoutePlannerOpen ? 'rgba(48, 209, 88, 0.2)' : '#2C2C2E';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Route size={14} style={{ color: isRoutePlannerOpen ? '#45d6c5' : '#34d399' }} />
+                <Route size={14} style={{ color: isRoutePlannerOpen ? '#30D158' : '#30D158' }} />
                 <span>Route Planner</span>
               </div>
               <span style={{
                 fontSize: '9.5px',
-                color: isRoutePlannerOpen ? '#45d6c5' : '#34d399',
-                fontWeight: 700,
+                color: isRoutePlannerOpen ? '#30D158' : '#30D158',
+                fontWeight: 600,
                 padding: '2px 6px',
-                borderRadius: '4px',
-                background: 'rgba(0, 0, 0, 0.25)'
+                borderRadius: '6px',
+                background: 'rgba(0, 0, 0, 0.3)'
               }}>
                 {isRoutePlannerOpen ? 'Active' : 'Flood Bypass'}
               </span>
@@ -932,37 +922,35 @@ export function GoogleMapsSearchBar({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '7px 10px',
-                borderRadius: '8px',
-                border: `1px solid ${isEnvIntelOpen ? '#38bdf8' : 'rgba(56, 189, 248, 0.25)'}`,
-                background: isEnvIntelOpen ? 'rgba(56, 189, 248, 0.18)' : 'rgba(56, 189, 248, 0.06)',
-                color: isEnvIntelOpen ? '#38bdf8' : '#bae6fd',
+                padding: '8px 10px',
+                borderRadius: '10px',
+                border: `1px solid ${isEnvIntelOpen ? '#0A84FF' : '#3A3A3C'}`,
+                background: isEnvIntelOpen ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E',
+                color: '#FFFFFF',
                 fontSize: '11.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                boxShadow: isEnvIntelOpen ? '0 0 12px rgba(56, 189, 248, 0.3)' : 'none',
+                boxShadow: isEnvIntelOpen ? '0 0 12px rgba(10, 132, 255, 0.35)' : 'none',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = isEnvIntelOpen ? 'rgba(56, 189, 248, 0.24)' : 'rgba(56, 189, 248, 0.14)';
-                e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.5)';
+                e.currentTarget.style.background = isEnvIntelOpen ? 'rgba(10, 132, 255, 0.28)' : 'rgba(58, 58, 60, 0.9)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = isEnvIntelOpen ? 'rgba(56, 189, 248, 0.18)' : 'rgba(56, 189, 248, 0.06)';
-                e.currentTarget.style.borderColor = isEnvIntelOpen ? '#38bdf8' : 'rgba(56, 189, 248, 0.25)';
+                e.currentTarget.style.background = isEnvIntelOpen ? 'rgba(10, 132, 255, 0.2)' : '#2C2C2E';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CloudRain size={14} style={{ color: isEnvIntelOpen ? '#38bdf8' : '#60a5fa' }} />
+                <CloudRain size={14} style={{ color: '#0A84FF' }} />
                 <span>Environmental Intel</span>
               </div>
               <span style={{
                 fontSize: '9.5px',
-                color: isEnvIntelOpen ? '#38bdf8' : '#60a5fa',
-                fontWeight: 700,
+                color: '#0A84FF',
+                fontWeight: 600,
                 padding: '2px 6px',
-                borderRadius: '4px',
-                background: 'rgba(0, 0, 0, 0.25)'
+                borderRadius: '6px',
+                background: 'rgba(0, 0, 0, 0.3)'
               }}>
                 {isEnvIntelOpen ? 'Active' : 'WMS & Weather'}
               </span>

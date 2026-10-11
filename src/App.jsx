@@ -701,38 +701,38 @@ export function App() {
               gap: '6px',
               padding: '6px 14px',
               borderRadius: '20px',
-              background: 'rgba(20, 24, 32, 0.94)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              color: '#f1f5f9',
+              background: 'rgba(28, 28, 30, 0.94)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid #3A3A3C',
+              color: '#FFFFFF',
               fontSize: '11.5px',
               fontWeight: 600,
               letterSpacing: '0.02em',
               cursor: 'pointer',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 240, 255, 0.25)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.55)',
               transition: 'all 0.18s ease'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.14)';
-              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.45)';
-              e.currentTarget.style.color = '#ffffff';
-              e.currentTarget.style.boxShadow = '0 6px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(239, 68, 68, 0.3)';
+              e.currentTarget.style.background = 'rgba(255, 69, 58, 0.16)';
+              e.currentTarget.style.borderColor = '#FF453A';
+              e.currentTarget.style.color = '#FFFFFF';
+              e.currentTarget.style.boxShadow = '0 6px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(255, 69, 58, 0.25)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(20, 24, 32, 0.94)';
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-              e.currentTarget.style.color = '#f1f5f9';
-              e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 240, 255, 0.25)';
+              e.currentTarget.style.background = 'rgba(28, 28, 30, 0.94)';
+              e.currentTarget.style.borderColor = '#3A3A3C';
+              e.currentTarget.style.color = '#FFFFFF';
+              e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.55)';
             }}
           >
-            <X size={13} style={{ color: '#f87171' }} />
+            <X size={13} style={{ color: '#FF453A' }} />
             <span>Exit Block View</span>
             {blockLabel && (
               <span
                 style={{
                   fontSize: '11px',
-                  color: '#94a3b8',
+                  color: 'rgba(235, 235, 245, 0.60)',
                   maxWidth: '180px',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',

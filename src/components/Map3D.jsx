@@ -1530,7 +1530,7 @@ export function Map3D({
           className="gmaps-tool-btn"
           title="View Full Karnataka State (Multi-Resolution Spatial Drainage Index)"
         >
-          <Maximize2 size={14} style={{ color: '#00f0ff' }} />
+          <Maximize2 size={14} style={{ color: '#0A84FF' }} />
           <span>Full Karnataka</span>
         </button>
 
@@ -1539,7 +1539,7 @@ export function Map3D({
           className="gmaps-tool-btn"
           title="Reset Camera to Bengaluru Center (Pitch 55°)"
         >
-          <Compass size={14} style={{ color: '#8ab4f8' }} />
+          <Compass size={14} style={{ color: '#FFFFFF' }} />
           <span>Bengaluru City</span>
         </button>
 
@@ -1548,7 +1548,7 @@ export function Map3D({
           className={`gmaps-tool-btn ${showTerrain ? 'active' : ''}`}
           title="Toggle 3D Terrain DEM"
         >
-          <Layers size={14} style={{ color: showTerrain ? '#8ab4f8' : '#9aa0a6' }} />
+          <Layers size={14} style={{ color: showTerrain ? '#0A84FF' : '#FFFFFF' }} />
           <span>Terrain 3D</span>
         </button>
 
@@ -1557,7 +1557,7 @@ export function Map3D({
           className={`gmaps-tool-btn ${show3DBuildings ? 'active' : ''}`}
           title="Toggle 3D Buildings"
         >
-          <Eye size={14} style={{ color: show3DBuildings ? '#8ab4f8' : '#9aa0a6' }} />
+          <Eye size={14} style={{ color: show3DBuildings ? '#0A84FF' : '#FFFFFF' }} />
           <span>3D Buildings</span>
         </button>
       </div>
