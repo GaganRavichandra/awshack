@@ -607,8 +607,14 @@ export function App() {
   const handleMapIdle = () => {};
 
   const handleSaveMapboxToken = (token) => {
-    setMapboxToken(token);
-    localStorage.setItem('4clique_mapbox_token', token);
+    const cleanToken = (token || '').trim();
+    const finalToken = cleanToken || MAPBOX_VERIFIED_TOKEN;
+    setMapboxToken(finalToken);
+    if (cleanToken) {
+      localStorage.setItem('4clique_mapbox_token', cleanToken);
+    } else {
+      localStorage.removeItem('4clique_mapbox_token');
+    }
   };
 
   const handleSaveAwsLambdaUrl = (url) => {

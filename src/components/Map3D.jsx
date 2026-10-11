@@ -120,6 +120,7 @@ export function Map3D({
   // Initialize Mapbox GL JS v3
   useEffect(() => {
     if (!mapContainerRef.current) return;
+    setMapLoaded(false);
 
     const token = (mapboxToken && mapboxToken.length > 30 && !mapboxToken.includes('your_mapbox'))
       ? mapboxToken

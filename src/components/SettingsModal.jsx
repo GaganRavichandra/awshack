@@ -18,13 +18,13 @@ export function SettingsModal({
 
   const handleSave = (e) => {
     e.preventDefault();
-    onSaveMapboxToken(tempToken.trim());
-    onSaveAwsLambdaUrl(tempUrl.trim());
+    onSaveMapboxToken(tempToken ? tempToken.trim() : '');
+    onSaveAwsLambdaUrl(tempUrl ? tempUrl.trim() : '');
     setSavedNotice(true);
     setTimeout(() => {
       setSavedNotice(false);
       onClose();
-    }, 1000);
+    }, 800);
   };
 
   return (

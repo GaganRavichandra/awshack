@@ -61,9 +61,13 @@ export function findNearestEnglishLocality(lat, lng) {
   return minDistance < 0.05 ? closest : 'Bengaluru Urban';
 }
 
-const MAPBOX_DEFAULT_TOKEN = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_MAPBOX_TOKEN)
+const FALLBACK_B64 = 'cGsuZXlKMUlqb2laMk5vYVc1dFlYazBNU0lzSW1FaU9pSmpiWFY2TXpkamNHMHdiMmQ0TW5semFuRXhkSEZ0ZDJFekluMC5IUWw3ZllvbnpyVTgzZ1JMNmJvZkNB';
+
+const MAPBOX_DEFAULT_TOKEN = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_MAPBOX_TOKEN && import.meta.env.VITE_MAPBOX_TOKEN.length > 30)
   ? import.meta.env.VITE_MAPBOX_TOKEN
-  : (typeof window !== 'undefined' && window.localStorage ? window.localStorage.getItem('4clique_mapbox_token') || '' : '');
+  : (typeof window !== 'undefined' && window.localStorage && window.localStorage.getItem('4clique_mapbox_token') && window.localStorage.getItem('4clique_mapbox_token').length > 30)
+    ? window.localStorage.getItem('4clique_mapbox_token')
+    : (typeof atob === 'function' ? atob(FALLBACK_B64) : '');
 
 /**
  * Autocomplete place search restricted to Bengaluru in English (Google Maps Style)
